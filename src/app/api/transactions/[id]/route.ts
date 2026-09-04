@@ -23,8 +23,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   if (parsed.data.categoryId) {
-    const category = await prisma.category.findUnique({ where: { id: parsed.data.categoryId } });
-    if (!category || category.userId !== session.user.id || !category.parentId) {
+    const category = await prisma.category.findUnique({
+      where: { id: parsed.data.categoryId },
+      include: { _count: { select: { children: true } } },
+    });
+    // A root category is only rejected when it's a real group with sub-categories underneath
+    // it (a header, not selectable). Old pre-hierarchy accounts have childless root categories
+    // that ARE meant to be directly assignable.
+    const isUnselectableGroup = !category?.parentId && (category?._count.children ?? 0) > 0;
+    if (!category || category.userId !== session.user.id || isUnselectableGroup) {
       return NextResponse.json({ error: "Invalid category" }, { status: 400 });
     }
   }

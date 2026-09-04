@@ -29,11 +29,13 @@ function OptionNode({
   depth,
   value,
   onSelect,
+  showIcon = false,
 }: {
   node: CategoryNode;
   depth: number;
   value: string | null;
   onSelect: (id: string) => void;
+  showIcon?: boolean;
 }) {
   return (
     <div>
@@ -41,10 +43,11 @@ function OptionNode({
         type="button"
         onClick={() => onSelect(node.id)}
         style={{ paddingLeft: `${0.75 + depth * 0.9}rem` }}
-        className={`flex w-full items-center py-1.5 pr-3 text-left text-sm hover:bg-brand-mist/40 ${
+        className={`flex w-full items-center gap-1.5 py-1.5 pr-3 text-left text-sm hover:bg-brand-mist/40 ${
           value === node.id ? "bg-brand-green/10 font-semibold text-brand-dark" : "text-brand-forest"
         }`}
       >
+        {showIcon && node.icon && <span className="text-sm leading-none">{node.icon}</span>}
         {node.name}
       </button>
       {node.children.map((child) => (
@@ -122,26 +125,42 @@ export function CategoryPicker({
             Uncategorized
           </button>
 
-          {categories.map((group) => (
-            <div key={group.id} className="mt-1 first:mt-0">
-              <div className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wide text-brand-forest/50 uppercase">
-                <span className="text-sm leading-none normal-case">{group.icon}</span>
-                {group.name}
+          {categories.map((group) =>
+            group.children.length === 0 ? (
+              // Old flat categories (pre-hierarchy) have no children — treat as a directly
+              // selectable item rather than an inert group header.
+              <OptionNode
+                key={group.id}
+                node={group}
+                depth={0}
+                value={value}
+                showIcon
+                onSelect={(id) => {
+                  onChange(id);
+                  setOpen(false);
+                }}
+              />
+            ) : (
+              <div key={group.id} className="mt-1 first:mt-0">
+                <div className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wide text-brand-forest/50 uppercase">
+                  <span className="text-sm leading-none normal-case">{group.icon}</span>
+                  {group.name}
+                </div>
+                {group.children.map((child) => (
+                  <OptionNode
+                    key={child.id}
+                    node={child}
+                    depth={1}
+                    value={value}
+                    onSelect={(id) => {
+                      onChange(id);
+                      setOpen(false);
+                    }}
+                  />
+                ))}
               </div>
-              {group.children.map((child) => (
-                <OptionNode
-                  key={child.id}
-                  node={child}
-                  depth={1}
-                  value={value}
-                  onSelect={(id) => {
-                    onChange(id);
-                    setOpen(false);
-                  }}
-                />
-              ))}
-            </div>
-          ))}
+            ),
+          )}
         </div>
       )}
     </div>
