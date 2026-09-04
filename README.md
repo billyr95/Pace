@@ -44,6 +44,24 @@ credentials to work:
 Without these set, the button stays disabled with an inline error — that's
 expected, not a bug.
 
+#### Connecting a real bank instead
+
+Sandbox never touches real accounts. To link a real bank, request
+Production access from the Plaid dashboard (Plaid's self-serve trial plan
+works for this — no lengthy review needed for small-scale/personal use).
+Then swap in the production secret:
+
+```
+PLAID_SECRET="your_production_secret"
+PLAID_ENV="production"
+```
+
+Update this in both your local `.env` and the `pace` project's environment
+variables on Vercel. No code changes needed — `PLAID_ENV` already picks the
+right Plaid API host (`src/lib/plaid.ts`). Once switched, Link shows real
+institutions and needs real bank login credentials — sandbox's
+`user_good`/`pass_good` won't work anymore.
+
 ## What's real vs. placeholder
 
 - **Real**: auth, budgets, Plaid Link + transaction sync, all the dashboard
