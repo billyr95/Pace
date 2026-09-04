@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  plaidItems        PlaidItem[]
+  financialAccounts FinancialAccount[]
+  categories        Category[]
+  transactions      Transaction[]
+}
+
+/// One Plaid Item = one bank-login connection, which can expose several accounts.
+model PlaidItem {
+  id              String   @id @default(cuid())
+  userId          String
+  itemId          String   @unique
+  accessToken     String
+  institutionId   String?
+  institutionName String?
+  createdAt       DateTime @default(now())
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts FinancialAccount[]
+}
+
+model FinancialAccount {
+  id               String  @id @default(cuid())
+  userId           String
+  plaidItemId      String?
+  plaidAccountId   String?
+  name             String
+  mask             String?
+  type             String
+  subtype          String?
+  currentBalance   Float?
+  availableBalance Float?
+  isoCurrencyCode  String  @default("USD")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plaidItem    PlaidItem?    @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([plaidAccountId])
+}
+
+model Category {
+  id           String  @id @default(cuid())
+  userId       String
+  name         String
+  icon         String  @default("circle")
+  monthlyLimit Float?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([userId, name])
+}
+
+model Transaction {
+  id                 String   @id @default(cuid())
+  userId             String
+  financialAccountId String
+  categoryId         String?
+  plaidTransactionId String?  @unique
+  amount             Float
+  isoCurrencyCode    String   @default("USD")
+  date               DateTime
+  name               String
+  merchantName       String?
+  pending            Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  financialAccount FinancialAccount @relation(fields: [financialAccountId], references: [id], onDelete: Cascade)
+  category         Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+}
