@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { CategoryPicker, type CategoryNode } from "@/components/category-picker";
 
 export type TransactionRowData = {
   id: string;
@@ -17,18 +17,16 @@ export function TransactionRow({
   categories,
 }: {
   transaction: TransactionRowData;
-  categories: { id: string; name: string }[];
+  categories: CategoryNode[];
 }) {
   const router = useRouter();
-  const [categoryId, setCategoryId] = useState(transaction.categoryId ?? "");
   const isInflow = transaction.amount < 0;
 
-  async function onChange(value: string) {
-    setCategoryId(value);
+  async function onChange(categoryId: string | null) {
     await fetch(`/api/transactions/${transaction.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ categoryId: value || null }),
+      body: JSON.stringify({ categoryId }),
     });
     router.refresh();
   }
@@ -37,20 +35,11 @@ export function TransactionRow({
     <li className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
       <span className="flex-1 min-w-0">
         <p className="truncate text-sm font-semibold">{transaction.merchantName ?? transaction.name}</p>
-        <select
-          value={categoryId}
-          onChange={(e) => onChange(e.target.value)}
-          className="mt-0.5 rounded-md border-0 bg-transparent text-xs text-brand-forest/60 outline-none"
-        >
-          <option value="">Uncategorized</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <div className="mt-1">
+          <CategoryPicker categories={categories} value={transaction.categoryId} onChange={onChange} />
+        </div>
       </span>
-      <span className={`font-semibold ${isInflow ? "text-brand-green" : "text-brand-dark"}`}>
+      <span className={`shrink-0 font-semibold ${isInflow ? "text-brand-green" : "text-brand-dark"}`}>
         {isInflow ? "+" : "-"}${Math.abs(transaction.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
         {transaction.pending && <span className="ml-1 text-[10px] font-normal text-brand-forest/50">pending</span>}
       </span>

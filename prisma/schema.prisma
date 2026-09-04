@@ -57,14 +57,17 @@ model FinancialAccount {
 model Category {
   id           String  @id @default(cuid())
   userId       String
+  parentId     String?
   name         String
-  icon         String  @default("circle")
+  icon         String  @default("")
   monthlyLimit Float?
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Category?     @relation("CategoryToSubcategory", fields: [parentId], references: [id], onDelete: Cascade)
+  children     Category[]    @relation("CategoryToSubcategory")
   transactions Transaction[]
 
-  @@unique([userId, name])
+  @@unique([userId, parentId, name])
 }
 
 model Transaction {

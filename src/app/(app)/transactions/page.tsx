@@ -1,6 +1,13 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { TransactionRow } from "@/components/transaction-row";
+import type { CategoryNode } from "@/components/category-picker";
+
+type RawNode = { id: string; name: string; icon: string; children?: RawNode[] };
+
+function toCategoryNode(raw: RawNode): CategoryNode {
+  return { id: raw.id, name: raw.name, icon: raw.icon, children: (raw.children ?? []).map(toCategoryNode) };
+}
 
 function groupByDay<T extends { date: Date }>(transactions: T[]) {
   const groups = new Map<string, T[]>();
@@ -17,11 +24,21 @@ export default async function TransactionsPage() {
   const session = await auth();
   const userId = session!.user.id;
 
-  const [transactions, categories] = await Promise.all([
+  const [transactions, rawCategories] = await Promise.all([
     prisma.transaction.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 100 }),
-    prisma.category.findMany({ where: { userId }, select: { id: true, name: true } }),
+    prisma.category.findMany({
+      where: { userId, parentId: null },
+      orderBy: { name: "asc" },
+      include: {
+        children: {
+          orderBy: { name: "asc" },
+          include: { children: { orderBy: { name: "asc" } } },
+        },
+      },
+    }),
   ]);
 
+  const categoryGroups = rawCategories.map(toCategoryNode);
   const grouped = groupByDay(transactions);
 
   return (
@@ -40,7 +57,7 @@ export default async function TransactionsPage() {
             </h2>
             <ul className="space-y-2">
               {rows.map((t) => (
-                <TransactionRow key={t.id} transaction={t} categories={categories} />
+                <TransactionRow key={t.id} transaction={t} categories={categoryGroups} />
               ))}
             </ul>
           </div>

@@ -24,7 +24,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (parsed.data.categoryId) {
     const category = await prisma.category.findUnique({ where: { id: parsed.data.categoryId } });
-    if (!category || category.userId !== session.user.id) {
+    if (!category || category.userId !== session.user.id || !category.parentId) {
       return NextResponse.json({ error: "Invalid category" }, { status: 400 });
     }
   }

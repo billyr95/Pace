@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_CATEGORY_TREE, type CategorySeed } from "@/lib/default-categories";
 
 const registerSchema = z.object({
   name: z.string().min(1).max(100),
@@ -9,12 +11,16 @@ const registerSchema = z.object({
   password: z.string().min(8).max(100),
 });
 
-const DEFAULT_CATEGORIES = [
-  { name: "Housing", icon: "home", monthlyLimit: 2000 },
-  { name: "Food & Dining", icon: "utensils", monthlyLimit: 700 },
-  { name: "Transport", icon: "car", monthlyLimit: 300 },
-  { name: "Lifestyle", icon: "shopping-bag", monthlyLimit: 600 },
-];
+function toCategoryCreateData(userId: string, node: CategorySeed): Prisma.CategoryUncheckedCreateWithoutParentInput {
+  return {
+    userId,
+    name: node.name,
+    icon: node.icon ?? "",
+    children: node.children?.length
+      ? { create: node.children.map((child) => toCategoryCreateData(userId, child)) }
+      : undefined,
+  };
+}
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -33,13 +39,14 @@ export async function POST(request: Request) {
   const passwordHash = await bcrypt.hash(password, 10);
 
   const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      passwordHash,
-      categories: { create: DEFAULT_CATEGORIES },
-    },
+    data: { name, email, passwordHash },
   });
+
+  await Promise.all(
+    DEFAULT_CATEGORY_TREE.map((group) =>
+      prisma.category.create({ data: toCategoryCreateData(user.id, group) }),
+    ),
+  );
 
   return NextResponse.json({ id: user.id, email: user.email });
 }
