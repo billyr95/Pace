@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { merchantKey } from "@/lib/merchant-key";
 
 const bodySchema = z.object({ categoryId: z.string().nullable() });
 
@@ -37,5 +38,32 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   await prisma.transaction.update({ where: { id }, data: { categoryId: parsed.data.categoryId } });
-  return NextResponse.json({ ok: true });
+
+  let autoAppliedCount = 0;
+  const categoryId = parsed.data.categoryId;
+  if (categoryId) {
+    const key = merchantKey(transaction);
+
+    await prisma.merchantRule.upsert({
+      where: { userId_matchKey: { userId: session.user.id, matchKey: key } },
+      create: { userId: session.user.id, matchKey: key, categoryId },
+      update: { categoryId },
+    });
+
+    // Back-fill other uncategorized transactions from the same merchant right away.
+    const candidates = await prisma.transaction.findMany({
+      where: { userId: session.user.id, categoryId: null, id: { not: id } },
+      select: { id: true, name: true, merchantName: true },
+    });
+    const matchingIds = candidates.filter((c) => merchantKey(c) === key).map((c) => c.id);
+    if (matchingIds.length > 0) {
+      const result = await prisma.transaction.updateMany({
+        where: { id: { in: matchingIds } },
+        data: { categoryId },
+      });
+      autoAppliedCount = result.count;
+    }
+  }
+
+  return NextResponse.json({ ok: true, autoAppliedCount });
 }

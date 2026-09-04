@@ -18,6 +18,7 @@ model User {
   financialAccounts FinancialAccount[]
   categories        Category[]
   transactions      Transaction[]
+  merchantRules     MerchantRule[]
 }
 
 /// One Plaid Item = one bank-login connection, which can expose several accounts.
@@ -66,6 +67,7 @@ model Category {
   parent       Category?     @relation("CategoryToSubcategory", fields: [parentId], references: [id], onDelete: Cascade)
   children     Category[]    @relation("CategoryToSubcategory")
   transactions Transaction[]
+  merchantRules MerchantRule[]
 
   @@unique([userId, parentId, name])
 }
@@ -87,4 +89,19 @@ model Transaction {
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   financialAccount FinancialAccount @relation(fields: [financialAccountId], references: [id], onDelete: Cascade)
   category         Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+}
+
+/// Remembers which category a merchant was manually assigned to, so future (and existing)
+/// transactions from the same merchant can be auto-categorized.
+model MerchantRule {
+  id         String   @id @default(cuid())
+  userId     String
+  matchKey   String
+  categoryId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchKey])
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CategoryPicker, type CategoryNode } from "@/components/category-picker";
 
@@ -20,14 +21,17 @@ export function TransactionRow({
   categories: CategoryNode[];
 }) {
   const router = useRouter();
+  const [autoAppliedCount, setAutoAppliedCount] = useState(0);
   const isInflow = transaction.amount < 0;
 
   async function onChange(categoryId: string | null) {
-    await fetch(`/api/transactions/${transaction.id}`, {
+    const res = await fetch(`/api/transactions/${transaction.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ categoryId }),
     });
+    const body = await res.json().catch(() => ({}));
+    setAutoAppliedCount(body.autoAppliedCount ?? 0);
     router.refresh();
   }
 
@@ -38,6 +42,11 @@ export function TransactionRow({
         <div className="mt-1">
           <CategoryPicker categories={categories} value={transaction.categoryId} onChange={onChange} />
         </div>
+        {autoAppliedCount > 0 && (
+          <p className="mt-1 text-[11px] text-brand-green">
+            Also applied to {autoAppliedCount} other matching transaction{autoAppliedCount === 1 ? "" : "s"}
+          </p>
+        )}
       </span>
       <span className={`shrink-0 font-semibold ${isInflow ? "text-brand-green" : "text-brand-dark"}`}>
         {isInflow ? "+" : "-"}${Math.abs(transaction.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}

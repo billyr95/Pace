@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { plaidClient } from "@/lib/plaid";
 import { prisma } from "@/lib/prisma";
+import { merchantKey } from "@/lib/merchant-key";
 
 export async function POST() {
   const session = await auth();
@@ -11,10 +12,11 @@ export async function POST() {
 
   const userId = session.user.id;
 
-  const items = await prisma.plaidItem.findMany({
-    where: { userId },
-    include: { accounts: true },
-  });
+  const [items, rules] = await Promise.all([
+    prisma.plaidItem.findMany({ where: { userId }, include: { accounts: true } }),
+    prisma.merchantRule.findMany({ where: { userId } }),
+  ]);
+  const categoryByMatchKey = new Map(rules.map((r) => [r.matchKey, r.categoryId]));
 
   let added = 0;
 
@@ -45,10 +47,13 @@ export async function POST() {
           merchantName: txn.merchant_name ?? undefined,
           pending: txn.pending,
         };
+        const matchedCategoryId = categoryByMatchKey.get(merchantKey(data));
 
         await prisma.transaction.upsert({
           where: { plaidTransactionId: txn.transaction_id },
-          create: data,
+          // Only auto-categorize on first insert — a re-sync (e.g. pending -> posted) must
+          // never clobber a category the user already picked by hand.
+          create: matchedCategoryId ? { ...data, categoryId: matchedCategoryId } : data,
           update: data,
         });
         added += 1;
