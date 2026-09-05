@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { CategoryPicker, type CategoryNode } from "@/components/category-picker";
 
 export type TransactionRowData = {
@@ -16,11 +15,12 @@ export type TransactionRowData = {
 export function TransactionRow({
   transaction,
   categories,
+  onCategorized,
 }: {
   transaction: TransactionRowData;
   categories: CategoryNode[];
+  onCategorized: (categoryId: string | null, autoAppliedIds: string[]) => void;
 }) {
-  const router = useRouter();
   const [autoAppliedCount, setAutoAppliedCount] = useState(0);
   const isInflow = transaction.amount < 0;
 
@@ -31,8 +31,9 @@ export function TransactionRow({
       body: JSON.stringify({ categoryId }),
     });
     const body = await res.json().catch(() => ({}));
-    setAutoAppliedCount(body.autoAppliedCount ?? 0);
-    router.refresh();
+    const autoAppliedIds: string[] = body.autoAppliedIds ?? [];
+    setAutoAppliedCount(autoAppliedIds.length);
+    onCategorized(categoryId, autoAppliedIds);
   }
 
   return (

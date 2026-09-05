@@ -39,7 +39,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   await prisma.transaction.update({ where: { id }, data: { categoryId: parsed.data.categoryId } });
 
-  let autoAppliedCount = 0;
+  let autoAppliedIds: string[] = [];
   const categoryId = parsed.data.categoryId;
   if (categoryId) {
     const key = merchantKey(transaction);
@@ -50,20 +50,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       update: { categoryId },
     });
 
-    // Back-fill other uncategorized transactions from the same merchant right away.
+    // Back-fill other uncategorized transactions from the same merchant (same direction) right away.
     const candidates = await prisma.transaction.findMany({
       where: { userId: session.user.id, categoryId: null, id: { not: id } },
-      select: { id: true, name: true, merchantName: true },
+      select: { id: true, name: true, merchantName: true, amount: true },
     });
-    const matchingIds = candidates.filter((c) => merchantKey(c) === key).map((c) => c.id);
-    if (matchingIds.length > 0) {
-      const result = await prisma.transaction.updateMany({
-        where: { id: { in: matchingIds } },
+    autoAppliedIds = candidates.filter((c) => merchantKey(c) === key).map((c) => c.id);
+    if (autoAppliedIds.length > 0) {
+      await prisma.transaction.updateMany({
+        where: { id: { in: autoAppliedIds } },
         data: { categoryId },
       });
-      autoAppliedCount = result.count;
     }
   }
 
-  return NextResponse.json({ ok: true, autoAppliedCount });
+  return NextResponse.json({ ok: true, categoryId, autoAppliedIds });
 }

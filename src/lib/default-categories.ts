@@ -89,6 +89,7 @@ export const DEFAULT_CATEGORY_TREE: CategorySeed[] = [
       { name: "Pharmacy" },
       { name: "Fitness" },
       { name: "Therapy / Wellness" },
+      { name: "Tobacco" },
     ],
   },
   {
@@ -114,6 +115,7 @@ export const DEFAULT_CATEGORY_TREE: CategorySeed[] = [
       { name: "Bank Fees" },
       { name: "Taxes" },
       { name: "Insurance" },
+      { name: "ATM Withdrawal" },
     ],
   },
   {
@@ -161,6 +163,7 @@ export const DEFAULT_CATEGORY_TREE: CategorySeed[] = [
           { name: "Cashback" },
           { name: "Sold Item" },
           { name: "Transfer In" },
+          { name: "Cash Deposit" },
         ],
       },
       {

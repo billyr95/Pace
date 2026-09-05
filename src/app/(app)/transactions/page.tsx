@@ -1,23 +1,12 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { TransactionRow } from "@/components/transaction-row";
+import { TransactionList } from "@/components/transaction-list";
 import type { CategoryNode } from "@/components/category-picker";
 
 type RawNode = { id: string; name: string; icon: string; children?: RawNode[] };
 
 function toCategoryNode(raw: RawNode): CategoryNode {
   return { id: raw.id, name: raw.name, icon: raw.icon, children: (raw.children ?? []).map(toCategoryNode) };
-}
-
-function groupByDay<T extends { date: Date }>(transactions: T[]) {
-  const groups = new Map<string, T[]>();
-  for (const t of transactions) {
-    const key = t.date.toISOString().slice(0, 10);
-    const list = groups.get(key) ?? [];
-    list.push(t);
-    groups.set(key, list);
-  }
-  return groups;
 }
 
 export default async function TransactionsPage() {
@@ -39,7 +28,6 @@ export default async function TransactionsPage() {
   ]);
 
   const categoryGroups = rawCategories.map(toCategoryNode);
-  const grouped = groupByDay(transactions);
 
   return (
     <div className="space-y-6 px-5 pt-6">
@@ -50,18 +38,7 @@ export default async function TransactionsPage() {
           No transactions yet. Connect a bank account from the Home tab to get started.
         </p>
       ) : (
-        Array.from(grouped.entries()).map(([day, rows]) => (
-          <div key={day}>
-            <h2 className="mb-2 text-xs font-semibold text-brand-forest/50">
-              {new Date(day).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
-            </h2>
-            <ul className="space-y-2">
-              {rows.map((t) => (
-                <TransactionRow key={t.id} transaction={t} categories={categoryGroups} />
-              ))}
-            </ul>
-          </div>
-        ))
+        <TransactionList initialTransactions={transactions} categories={categoryGroups} />
       )}
     </div>
   );
