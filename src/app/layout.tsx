@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { satoshi } from "@/lib/fonts";
 import "./globals.css";
 
-const SITE_URL = "https://pace-nine-zeta.vercel.app";
+const SITE_URL = "https://www.pace-budget.xyz";
 const TITLE = "pace — your money. your pace.";
 const DESCRIPTION = "A budgeting app that moves with you, not against you.";
 
