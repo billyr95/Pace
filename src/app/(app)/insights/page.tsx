@@ -23,9 +23,10 @@ export default async function InsightsPage({
 
   const now = new Date();
   const rangeStart = DATE_RANGES[range].since(now);
+  const rangeEnd = DATE_RANGES[range].until(now);
   const yearStart = new Date(now.getFullYear(), 0, 1);
   const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-  const txSelect = { where: { date: { gte: rangeStart } }, select: { amount: true } } as const;
+  const txSelect = { where: { date: { gte: rangeStart, lt: rangeEnd } }, select: { amount: true } } as const;
 
   const [rawGroups, incomeProfile, ytdIncomeTx, recentIncomeTx] = await Promise.all([
     prisma.category.findMany({
@@ -68,6 +69,32 @@ export default async function InsightsPage({
     }))
     .filter((g) => g.segments.length > 0);
 
+  // Money In is one root with a middle tier (Income / Other Money In / Advances), so it mirrors
+  // the expense breakdown one level down: mid-tier nodes stand in for "categories", their own
+  // children become the bar segments.
+  const incomeGroup = groups.find((g) => g.isIncome);
+  const totalReceived = incomeGroup?.totalReceived ?? 0;
+  const incomePieSlices = incomeGroup
+    ? topNWithOther(
+        incomeGroup.children.map((c) => ({ name: c.name, amount: c.totalReceived })),
+        8,
+      )
+    : [];
+  const incomeBarGroups = (incomeGroup?.children ?? [])
+    .filter((c) => c.totalReceived > 0)
+    .sort((a, b) => b.totalReceived - a.totalReceived)
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      icon: incomeGroup!.icon,
+      total: c.totalReceived,
+      segments: topNWithOther(
+        c.children.map((leaf) => ({ name: leaf.name, amount: leaf.totalReceived })),
+        8,
+      ),
+    }))
+    .filter((g) => g.segments.length > 0);
+
   const ytdIncome = ytdIncomeTx.reduce((sum, t) => sum - t.amount, 0);
   const recentMonthlyAvg = recentIncomeTx.reduce((sum, t) => sum - t.amount, 0) / 3;
   const profileData: IncomeProfileData = incomeProfile
@@ -78,13 +105,13 @@ export default async function InsightsPage({
   const projectedAnnual = ytdIncome + expectedThisMonth * monthsRemaining;
 
   const fmt = (n: number) => `$${Math.round(n).toLocaleString()}`;
-  const rangePhrase = range === "this_month" ? "this month" : `in the ${DATE_RANGES[range].label.toLowerCase()}`;
+  const rangePhrase = DATE_RANGES[range].phrase(now);
 
   return (
     <div className="space-y-6 px-5 pt-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-black">Insights</h1>
-        <DateRangeSelect value={range} />
+        <DateRangeSelect value={range} now={now} />
       </div>
 
       <div className="rounded-2xl bg-white p-4 shadow-sm">
@@ -110,6 +137,25 @@ export default async function InsightsPage({
         <p className="text-sm text-brand-forest/60">
           No categorized spending {rangePhrase} yet — try a wider range above, or categorize some transactions.
         </p>
+      )}
+
+      <div className="rounded-2xl bg-white p-4 shadow-sm">
+        <p className="text-sm text-brand-forest/70">Received {rangePhrase}</p>
+        <p className="text-2xl font-black">{fmt(totalReceived)}</p>
+      </div>
+
+      {incomePieSlices.length > 0 && (
+        <div className="rounded-2xl bg-white p-4 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-brand-forest/70">Money in by category</h2>
+          <SpendPieChart slices={incomePieSlices} total={totalReceived} rangePhrase={rangePhrase} verb="received" />
+        </div>
+      )}
+
+      {incomeBarGroups.length > 0 && (
+        <div className="rounded-2xl bg-white p-4 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-brand-forest/70">Money in breakdown</h2>
+          <CategorySpendBars groups={incomeBarGroups} />
+        </div>
       )}
 
       <div className="rounded-2xl bg-white p-4 shadow-sm">

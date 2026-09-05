@@ -116,6 +116,7 @@ export const DEFAULT_CATEGORY_TREE: CategorySeed[] = [
       { name: "Taxes" },
       { name: "Insurance" },
       { name: "ATM Withdrawal" },
+      { name: "Venmo / App Pay" },
     ],
   },
   {

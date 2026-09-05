@@ -3,7 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { DATE_RANGES, type DateRangeKey } from "@/lib/date-range";
 
-export function DateRangeSelect({ value }: { value: DateRangeKey }) {
+export function DateRangeSelect({ value, now }: { value: DateRangeKey; now: Date }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -22,7 +22,7 @@ export function DateRangeSelect({ value }: { value: DateRangeKey }) {
     >
       {Object.entries(DATE_RANGES).map(([key, { label }]) => (
         <option key={key} value={key}>
-          {label}
+          {label(now)}
         </option>
       ))}
     </select>

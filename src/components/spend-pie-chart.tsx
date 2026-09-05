@@ -20,15 +20,21 @@ export function SpendPieChart({
   slices,
   total,
   rangePhrase,
+  verb = "spent",
 }: {
   slices: ColoredAmount[];
   total: number;
   rangePhrase: string;
+  verb?: string;
 }) {
   const [hovered, setHovered] = useState<number | null>(null);
 
   if (total <= 0 || slices.length === 0) {
-    return <p className="text-sm text-brand-forest/50">No spending {rangePhrase} yet.</p>;
+    return (
+      <p className="text-sm text-brand-forest/50">
+        Nothing {verb} {rangePhrase} yet.
+      </p>
+    );
   }
 
   const wedges = slices.map((slice, i) => {
@@ -54,7 +60,7 @@ export function SpendPieChart({
           </>
         ) : (
           <span className="text-brand-forest/60">
-            ${total.toLocaleString(undefined, { maximumFractionDigits: 0 })} spent {rangePhrase}
+            ${total.toLocaleString(undefined, { maximumFractionDigits: 0 })} {verb} {rangePhrase}
           </span>
         )}
       </p>
