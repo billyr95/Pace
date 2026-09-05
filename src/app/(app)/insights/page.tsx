@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { aggregate } from "@/lib/category-tree";
 import { INCOME_ROOT_CATEGORIES } from "@/lib/default-categories";
-import { topNWithOther } from "@/lib/chart-palette";
+import { topNWithOther, CATEGORICAL_PALETTE } from "@/lib/chart-palette";
 import { expectedMonthlyIncome, type PayFrequency } from "@/lib/income";
 import { DATE_RANGES, isDateRangeKey, type DateRangeKey } from "@/lib/date-range";
 import { DateRangeSelect } from "@/components/date-range-select";
@@ -54,6 +54,10 @@ export default async function InsightsPage({
     expenseGroups.map((g) => ({ name: g.name, amount: g.totalSpent })),
     8,
   );
+  // So a category's bar below starts with the same hue as its pie slice, instead of every
+  // bar independently restarting its own color sequence at blue.
+  const paletteIndex = (color: string) => Math.max(0, CATEGORICAL_PALETTE.indexOf(color));
+  const expenseColorIndex = new Map(pieSlices.map((s) => [s.name, paletteIndex(s.color)]));
 
   const barGroups = [...expenseGroups]
     .sort((a, b) => b.totalSpent - a.totalSpent)
@@ -65,6 +69,7 @@ export default async function InsightsPage({
       segments: topNWithOther(
         g.children.map((c) => ({ name: c.name, amount: c.totalSpent })),
         8,
+        expenseColorIndex.get(g.name) ?? 0,
       ),
     }))
     .filter((g) => g.segments.length > 0);
@@ -80,6 +85,7 @@ export default async function InsightsPage({
         8,
       )
     : [];
+  const incomeColorIndex = new Map(incomePieSlices.map((s) => [s.name, paletteIndex(s.color)]));
   const incomeBarGroups = (incomeGroup?.children ?? [])
     .filter((c) => c.totalReceived > 0)
     .sort((a, b) => b.totalReceived - a.totalReceived)
@@ -91,6 +97,7 @@ export default async function InsightsPage({
       segments: topNWithOther(
         c.children.map((leaf) => ({ name: leaf.name, amount: leaf.totalReceived })),
         8,
+        incomeColorIndex.get(c.name) ?? 0,
       ),
     }))
     .filter((g) => g.segments.length > 0);

@@ -7,12 +7,9 @@ function monthName(d: Date, now: Date) {
   return withYearIfNeeded(d, now, { month: "long" });
 }
 
-function shortDate(d: Date, now: Date) {
-  return withYearIfNeeded(d, now, { month: "short", day: "numeric" });
-}
-
-function dateSpan(since: Date, now: Date) {
-  return `${shortDate(since, now)} – ${shortDate(now, now)}`;
+/** The 1st of the month `n` months before `now`'s month (n=0 is this month, n=-1 is next month). */
+function monthsAgo(now: Date, n: number) {
+  return new Date(now.getFullYear(), now.getMonth() - n, 1);
 }
 
 type RangeConfig = {
@@ -24,35 +21,37 @@ type RangeConfig = {
 
 export const DATE_RANGES: Record<string, RangeConfig> = {
   this_month: {
-    since: (now) => new Date(now.getFullYear(), now.getMonth(), 1),
-    until: (now) => new Date(now.getFullYear(), now.getMonth() + 1, 1),
+    since: (now) => monthsAgo(now, 0),
+    until: (now) => monthsAgo(now, -1),
     label: () => "This month",
     phrase: () => "this month",
   },
   "1m": {
-    // The actual prior calendar month (e.g. August), not a rolling 30 days.
-    since: (now) => new Date(now.getFullYear(), now.getMonth() - 1, 1),
-    until: (now) => new Date(now.getFullYear(), now.getMonth(), 1),
-    label: (now) => monthName(new Date(now.getFullYear(), now.getMonth() - 1, 1), now),
-    phrase: (now) => `in ${monthName(new Date(now.getFullYear(), now.getMonth() - 1, 1), now)}`,
+    // The full previous calendar month (e.g. August 1 – August 31), not a rolling 30 days.
+    since: (now) => monthsAgo(now, 1),
+    until: (now) => monthsAgo(now, 0),
+    label: () => "Last month",
+    phrase: (now) => `in ${monthName(monthsAgo(now, 1), now)}`,
   },
   "3m": {
-    since: (now) => new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000),
-    until: (now) => new Date(now.getTime() + 24 * 60 * 60 * 1000),
-    label: (now) => dateSpan(new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000), now),
-    phrase: (now) => `from ${dateSpan(new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000), now)}`,
+    // The 3 full calendar months before this one — first-of-month to last-of-month, not
+    // "this day, 90 days ago."
+    since: (now) => monthsAgo(now, 3),
+    until: (now) => monthsAgo(now, 0),
+    label: () => "Past 3 months",
+    phrase: (now) => `from ${monthName(monthsAgo(now, 3), now)} to ${monthName(monthsAgo(now, 1), now)}`,
   },
   "6m": {
-    since: (now) => new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000),
-    until: (now) => new Date(now.getTime() + 24 * 60 * 60 * 1000),
-    label: (now) => dateSpan(new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000), now),
-    phrase: (now) => `from ${dateSpan(new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000), now)}`,
+    since: (now) => monthsAgo(now, 6),
+    until: (now) => monthsAgo(now, 0),
+    label: () => "Past 6 months",
+    phrase: (now) => `from ${monthName(monthsAgo(now, 6), now)} to ${monthName(monthsAgo(now, 1), now)}`,
   },
   "1y": {
-    since: (now) => new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000),
-    until: (now) => new Date(now.getTime() + 24 * 60 * 60 * 1000),
-    label: (now) => dateSpan(new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000), now),
-    phrase: (now) => `from ${dateSpan(new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000), now)}`,
+    since: (now) => monthsAgo(now, 12),
+    until: (now) => monthsAgo(now, 0),
+    label: () => "Past year",
+    phrase: (now) => `from ${monthName(monthsAgo(now, 12), now)} to ${monthName(monthsAgo(now, 1), now)}`,
   },
 };
 
