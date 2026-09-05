@@ -2,8 +2,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { CircularProgress } from "@/components/circular-progress";
 import { CategoryList } from "@/components/category-list";
+import { GoalList, type GoalRow } from "@/components/goal-list";
 import { aggregate, flattenLeaves } from "@/lib/category-tree";
-import { INCOME_ROOT_CATEGORIES } from "@/lib/default-categories";
+import { INCOME_ROOT_CATEGORIES, GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
 
 export default async function PlanPage() {
   const session = await auth();
@@ -12,6 +13,7 @@ export default async function PlanPage() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const priorMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
   const txSelect = { where: { date: { gte: monthStart } }, select: { amount: true } } as const;
 
   const [rawGroups, priorMonthTx] = await Promise.all([
@@ -45,7 +47,51 @@ export default async function PlanPage() {
   }
   const priorMonthLabel = priorMonthStart.toLocaleDateString(undefined, { month: "long" });
 
-  const groups = rawGroups.map((g) => ({ ...aggregate(g), isIncome: INCOME_ROOT_CATEGORIES.has(g.name) }));
+  const goalsRawGroup = rawGroups.find((g) => GOAL_ROOT_CATEGORIES.has(g.name));
+  const goalCategoryIds = goalsRawGroup?.children.map((c) => c.id) ?? [];
+
+  const [goalRecords, allTimeContributions, recentContributions] = await Promise.all([
+    prisma.goal.findMany({ where: { userId, categoryId: { in: goalCategoryIds } } }),
+    goalCategoryIds.length > 0
+      ? prisma.transaction.groupBy({
+          by: ["categoryId"],
+          where: { userId, categoryId: { in: goalCategoryIds }, amount: { gt: 0 } },
+          _sum: { amount: true },
+        })
+      : Promise.resolve([]),
+    goalCategoryIds.length > 0
+      ? prisma.transaction.groupBy({
+          by: ["categoryId"],
+          where: { userId, categoryId: { in: goalCategoryIds }, amount: { gt: 0 }, date: { gte: threeMonthsAgo } },
+          _sum: { amount: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const goalById = new Map(goalRecords.map((g) => [g.categoryId, g]));
+  const allTimeByCategory = new Map(allTimeContributions.map((r) => [r.categoryId, r._sum.amount ?? 0]));
+  const recentByCategory = new Map(recentContributions.map((r) => [r.categoryId, r._sum.amount ?? 0]));
+
+  const goalRows: GoalRow[] = (goalsRawGroup?.children ?? []).map((c) => {
+    const g = goalById.get(c.id);
+    return {
+      categoryId: c.id,
+      name: c.name,
+      icon: c.icon || "🌱",
+      goalId: g?.id ?? null,
+      targetAmount: g?.targetAmount ?? null,
+      targetDate: g?.targetDate ? g.targetDate.toISOString() : null,
+      totalContributed: allTimeByCategory.get(c.id) ?? 0,
+      monthlyRate: (recentByCategory.get(c.id) ?? 0) / 3,
+    };
+  });
+  const totalSaved = goalRows.reduce((sum, g) => sum + g.totalContributed, 0);
+
+  const groups = rawGroups.map((g) => ({
+    ...aggregate(g),
+    isIncome: INCOME_ROOT_CATEGORIES.has(g.name),
+    isGoals: GOAL_ROOT_CATEGORIES.has(g.name),
+  }));
 
   const expenseGroups = groups.filter((g) => !g.isIncome);
   const totalBudget = expenseGroups.reduce((sum, g) => sum + g.totalBudget, 0);
@@ -78,10 +124,16 @@ export default async function PlanPage() {
         ) : (
           <ul className="space-y-2">
             {groups.map((group) => {
-              const leaves = flattenLeaves(group, group.isIncome).map((leaf) => ({
-                ...leaf,
-                priorAmount: group.isIncome ? undefined : (priorMonthByCategory.get(leaf.id) ?? 0),
-              }));
+              const leaves = flattenLeaves(group, group.isIncome).map((leaf) => {
+                const priorAmount = priorMonthByCategory.get(leaf.id) ?? 0;
+                const rolloverAmount =
+                  !group.isIncome && leaf.rolloverEnabled ? Math.max(0, (leaf.monthlyLimit ?? 0) - priorAmount) : 0;
+                return {
+                  ...leaf,
+                  priorAmount: group.isIncome ? undefined : priorAmount,
+                  rolloverAmount,
+                };
+              });
               return (
                 <li key={group.id} className="rounded-2xl bg-surface shadow-sm">
                   <details className="group">
@@ -92,6 +144,12 @@ export default async function PlanPage() {
                         group.totalReceived > 0 && (
                           <span className="text-xs font-semibold text-brand-green">
                             +${group.totalReceived.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          </span>
+                        )
+                      ) : group.isGoals ? (
+                        totalSaved > 0 && (
+                          <span className="text-xs font-semibold text-brand-green">
+                            ${totalSaved.toLocaleString(undefined, { maximumFractionDigits: 0 })} saved
                           </span>
                         )
                       ) : group.totalBudget > 0 ? (
@@ -122,7 +180,11 @@ export default async function PlanPage() {
                       </svg>
                     </summary>
                     <div className="border-t border-divider px-4 py-3">
-                      <CategoryList categories={leaves} isIncome={group.isIncome} priorMonthLabel={priorMonthLabel} />
+                      {group.isGoals ? (
+                        <GoalList goals={goalRows} />
+                      ) : (
+                        <CategoryList categories={leaves} isIncome={group.isIncome} priorMonthLabel={priorMonthLabel} />
+                      )}
                     </div>
                   </details>
                 </li>

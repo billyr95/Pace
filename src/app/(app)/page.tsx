@@ -1,10 +1,12 @@
 import { auth, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { buildBalanceHistory } from "@/lib/balance-history";
-import { BalanceTrendChart } from "@/components/balance-trend-chart";
+import { detectRecurringBills } from "@/lib/recurring";
+import { GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
+import { NetWorthChart } from "@/components/net-worth-chart";
 import { ConnectBankButton } from "@/components/connect-bank-button";
 import { LogoMark } from "@/components/logo";
-import { Building2, PiggyBank, Wallet } from "lucide-react";
+import { Building2, PiggyBank, Repeat, Wallet } from "lucide-react";
 
 function accountIcon(type: string) {
   if (type === "credit") return Wallet;
@@ -17,15 +19,15 @@ export default async function HomePage() {
   const userId = session!.user.id;
 
   const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [accounts, categories, recentTransactions, monthlySpend] = await Promise.all([
+  const [accounts, categories, yearTransactions, monthlySpend] = await Promise.all([
     prisma.financialAccount.findMany({ where: { userId }, orderBy: { name: "asc" } }),
     prisma.category.findMany({ where: { userId } }),
     prisma.transaction.findMany({
-      where: { userId, date: { gte: thirtyDaysAgo } },
-      select: { amount: true, date: true },
+      where: { userId, date: { gte: oneYearAgo } },
+      select: { amount: true, date: true, name: true, merchantName: true, categoryId: true },
     }),
     prisma.transaction.aggregate({
       where: { userId, date: { gte: monthStart }, amount: { gt: 0 } },
@@ -34,10 +36,16 @@ export default async function HomePage() {
   ]);
 
   const totalBalance = accounts.reduce((sum, a) => sum + (a.currentBalance ?? 0), 0);
-  const balanceHistory = buildBalanceHistory(totalBalance, recentTransactions, now);
-  const firstPoint = balanceHistory[0]?.balance ?? totalBalance;
+  const balanceHistory = buildBalanceHistory(totalBalance, yearTransactions, now, 365);
+  const last30Days = balanceHistory.slice(-30);
+  const firstPoint = last30Days[0]?.balance ?? totalBalance;
   const change = totalBalance - firstPoint;
   const changePct = firstPoint !== 0 ? (change / Math.abs(firstPoint)) * 100 : 0;
+
+  const goalsRootId = categories.find((c) => GOAL_ROOT_CATEGORIES.has(c.name))?.id;
+  const goalCategoryIds = new Set(categories.filter((c) => c.parentId === goalsRootId).map((c) => c.id));
+  const billCandidates = yearTransactions.filter((t) => !t.categoryId || !goalCategoryIds.has(t.categoryId));
+  const recurringBills = detectRecurringBills(billCandidates, now).slice(0, 5);
 
   const spentThisMonth = monthlySpend._sum.amount ?? 0;
   const totalBudget = categories.reduce((sum, c) => sum + (c.monthlyLimit ?? 0), 0);
@@ -81,7 +89,7 @@ export default async function HomePage() {
 
       {accounts.length > 0 ? (
         <div className="rounded-2xl bg-surface p-4 shadow-sm">
-          <BalanceTrendChart points={balanceHistory} />
+          <NetWorthChart points={balanceHistory} />
         </div>
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-divider bg-surface p-8 text-center">
@@ -107,6 +115,39 @@ export default async function HomePage() {
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/15">
             <div className="h-full rounded-full bg-brand-green" style={{ width: `${pctOfBudget}%` }} />
           </div>
+        </div>
+      )}
+
+      {recurringBills.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-sm font-semibold text-secondary/70">Upcoming bills</h2>
+          <ul className="space-y-2">
+            {recurringBills.map((bill) => {
+              const daysUntil = Math.round((bill.nextDueDate.getTime() - now.getTime()) / 86_400_000);
+              const dueLabel =
+                daysUntil < 0
+                  ? `Was due ${bill.nextDueDate.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+                  : daysUntil === 0
+                    ? "Due today"
+                    : daysUntil === 1
+                      ? "Due tomorrow"
+                      : `Due in ${daysUntil} days`;
+              return (
+                <li key={bill.key} className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-secondary">
+                    <Repeat size={16} />
+                  </span>
+                  <span className="flex-1">
+                    <p className="text-sm font-semibold capitalize">{bill.displayName}</p>
+                    <p className="text-xs text-secondary/60">{dueLabel}</p>
+                  </span>
+                  <span className="font-semibold">
+                    ${bill.averageAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 

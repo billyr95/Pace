@@ -3,6 +3,7 @@ export type RawCategoryNode = {
   name: string;
   icon: string;
   monthlyLimit: number | null;
+  rolloverEnabled: boolean;
   transactions: { amount: number }[];
   children?: RawCategoryNode[];
 };
@@ -12,6 +13,7 @@ export type AggregatedNode = {
   name: string;
   icon: string;
   monthlyLimit: number | null;
+  rolloverEnabled: boolean;
   /** This node's own directly-assigned transactions, expense side (positive Plaid amounts = outflows). */
   spent: number;
   /** This node's own directly-assigned transactions, income side (negative Plaid amounts = inflows), as a positive number. */
@@ -36,6 +38,7 @@ export function aggregate(node: RawCategoryNode): AggregatedNode {
     name: node.name,
     icon: node.icon,
     monthlyLimit: node.monthlyLimit,
+    rolloverEnabled: node.rolloverEnabled,
     spent,
     received,
     totalSpent: spent + children.reduce((sum, c) => sum + c.totalSpent, 0),
@@ -49,10 +52,13 @@ export type LeafDisplayRow = {
   id: string;
   name: string;
   monthlyLimit: number | null;
+  rolloverEnabled: boolean;
   amount: number; // spent or received, whichever this subtree tracks
   sectionPath: { name: string; icon: string }[];
   /** Same metric, but for the prior calendar month — attached by the caller, not computed here. */
   priorAmount?: number;
+  /** Unspent leftover carried in from the prior month, when rollover is enabled — attached by the caller. */
+  rolloverAmount?: number;
 };
 
 /** Flattens a group's children into leaf rows, inserting a sub-header boundary for any intermediate grouping level. */
@@ -63,6 +69,7 @@ export function flattenLeaves(node: AggregatedNode, isIncome: boolean, ancestors
         id: node.id,
         name: node.name,
         monthlyLimit: node.monthlyLimit,
+        rolloverEnabled: node.rolloverEnabled,
         amount: isIncome ? node.totalReceived : node.totalSpent,
         sectionPath: ancestors,
       },

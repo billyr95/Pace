@@ -178,3 +178,6 @@ export const DEFAULT_CATEGORY_TREE: CategorySeed[] = [
 
 /** Root category names whose transactions are inflows (Plaid: negative amount), not expenses. */
 export const INCOME_ROOT_CATEGORIES = new Set(["Money In"]);
+
+/** Root category names whose leaves track savings goals (target + progress) instead of a monthly budget. */
+export const GOAL_ROOT_CATEGORIES = new Set(["Goals"]);

@@ -3,13 +3,29 @@ import { prisma } from "@/lib/prisma";
 import { LogoMark } from "@/components/logo";
 import { ConnectBankButton } from "@/components/connect-bank-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MerchantRuleList, type MerchantRuleData } from "@/components/merchant-rule-list";
+import { fetchCategoryTree } from "@/lib/category-node";
 import { Building2 } from "lucide-react";
 
 export default async function ProfilePage() {
   const session = await auth();
   const userId = session!.user.id;
 
-  const plaidItems = await prisma.plaidItem.findMany({ where: { userId } });
+  const [plaidItems, rawRules, categoryGroups] = await Promise.all([
+    prisma.plaidItem.findMany({ where: { userId } }),
+    prisma.merchantRule.findMany({ where: { userId }, orderBy: { matchKey: "asc" } }),
+    fetchCategoryTree(userId),
+  ]);
+
+  const rules: MerchantRuleData[] = rawRules.map((r) => {
+    const separatorIndex = r.matchKey.lastIndexOf("::");
+    return {
+      id: r.id,
+      merchant: r.matchKey.slice(0, separatorIndex),
+      direction: r.matchKey.slice(separatorIndex + 2) === "in" ? "in" : "out",
+      categoryId: r.categoryId,
+    };
+  });
 
   return (
     <div className="space-y-6 px-5 pt-6">
@@ -38,6 +54,11 @@ export default async function ProfilePage() {
           </ul>
         )}
         <ConnectBankButton className="mt-3 w-full" />
+      </div>
+
+      <div>
+        <h2 className="mb-2 text-sm font-semibold text-secondary/70">Auto-categorization rules</h2>
+        <MerchantRuleList rules={rules} categories={categoryGroups} />
       </div>
 
       <div>

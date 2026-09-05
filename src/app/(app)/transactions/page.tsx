@@ -1,13 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { TransactionList } from "@/components/transaction-list";
-import type { CategoryNode } from "@/components/category-picker";
-
-type RawNode = { id: string; name: string; icon: string; children?: RawNode[] };
-
-function toCategoryNode(raw: RawNode): CategoryNode {
-  return { id: raw.id, name: raw.name, icon: raw.icon, children: (raw.children ?? []).map(toCategoryNode) };
-}
+import { fetchCategoryTree } from "@/lib/category-node";
 
 export default async function TransactionsPage() {
   const session = await auth();
@@ -15,25 +9,14 @@ export default async function TransactionsPage() {
 
   const yearStart = new Date(new Date().getFullYear(), 0, 1);
 
-  const [transactions, rawCategories] = await Promise.all([
+  const [transactions, categoryGroups] = await Promise.all([
     prisma.transaction.findMany({
       where: { userId, date: { gte: yearStart } },
       orderBy: { date: "desc" },
       take: 2000,
     }),
-    prisma.category.findMany({
-      where: { userId, parentId: null },
-      orderBy: { name: "asc" },
-      include: {
-        children: {
-          orderBy: { name: "asc" },
-          include: { children: { orderBy: { name: "asc" } } },
-        },
-      },
-    }),
+    fetchCategoryTree(userId),
   ]);
-
-  const categoryGroups = rawCategories.map(toCategoryNode);
 
   return (
     <div className="space-y-6 px-5 pt-6">

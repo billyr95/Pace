@@ -20,6 +20,7 @@ model User {
   transactions      Transaction[]
   merchantRules     MerchantRule[]
   incomeProfile     IncomeProfile?
+  goals             Goal[]
 }
 
 /// One Plaid Item = one bank-login connection, which can expose several accounts.
@@ -57,20 +58,36 @@ model FinancialAccount {
 }
 
 model Category {
-  id           String  @id @default(cuid())
-  userId       String
-  parentId     String?
-  name         String
-  icon         String  @default("")
-  monthlyLimit Float?
+  id              String  @id @default(cuid())
+  userId          String
+  parentId        String?
+  name            String
+  icon            String  @default("")
+  monthlyLimit    Float?
+  rolloverEnabled Boolean @default(false)
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   parent       Category?     @relation("CategoryToSubcategory", fields: [parentId], references: [id], onDelete: Cascade)
   children     Category[]    @relation("CategoryToSubcategory")
   transactions Transaction[]
   merchantRules MerchantRule[]
+  goal         Goal?
 
   @@unique([userId, parentId, name])
+}
+
+/// A savings target attached to a leaf category (typically under "Goals"). Progress is
+/// derived from that category's all-time transaction total, not stored redundantly here.
+model Goal {
+  id           String    @id @default(cuid())
+  userId       String
+  categoryId   String    @unique
+  targetAmount Float
+  targetDate   DateTime?
+  createdAt    DateTime  @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {

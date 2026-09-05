@@ -32,6 +32,15 @@ export function CategoryList({
     router.refresh();
   }
 
+  async function toggleRollover(id: string, rolloverEnabled: boolean) {
+    await fetch(`/api/categories/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rolloverEnabled }),
+    });
+    router.refresh();
+  }
+
   return (
     <ul className="space-y-4">
       {categories.map((category, index) => {
@@ -42,8 +51,10 @@ export function CategoryList({
 
         const limit = category.monthlyLimit;
         const hasLimit = !isIncome && limit !== null && limit > 0;
-        const pct = hasLimit ? Math.min(100, Math.round((category.amount / limit) * 100)) : 0;
-        const over = hasLimit && category.amount > limit;
+        const rolloverAmount = category.rolloverAmount ?? 0;
+        const effectiveLimit = (limit ?? 0) + rolloverAmount;
+        const pct = hasLimit ? Math.min(100, Math.round((category.amount / effectiveLimit) * 100)) : 0;
+        const over = hasLimit && category.amount > effectiveLimit;
         const indent = category.sectionPath.length > 0 ? "pl-2" : "";
 
         return (
@@ -109,8 +120,20 @@ export function CategoryList({
                     </div>
                     <p className="mt-1 text-xs text-secondary/60">
                       ${category.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} actual / $
-                      {limit.toLocaleString(undefined, { maximumFractionDigits: 0 })} proposed
+                      {effectiveLimit.toLocaleString(undefined, { maximumFractionDigits: 0 })} proposed
+                      {rolloverAmount > 0 && priorMonthLabel && (
+                        <> (includes ${rolloverAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} rolled over from {priorMonthLabel})</>
+                      )}
                     </p>
+                    <label className="mt-1 flex items-center gap-1.5 text-[11px] text-secondary/50">
+                      <input
+                        type="checkbox"
+                        checked={category.rolloverEnabled}
+                        onChange={(e) => toggleRollover(category.id, e.target.checked)}
+                        className="h-3 w-3 accent-brand-green"
+                      />
+                      Roll over unused budget to next month
+                    </label>
                   </>
                 ) : (
                   category.amount > 0 && (

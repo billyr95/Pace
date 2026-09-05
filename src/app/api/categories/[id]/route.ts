@@ -3,7 +3,14 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-const bodySchema = z.object({ monthlyLimit: z.number().min(0).max(1_000_000) });
+const bodySchema = z
+  .object({
+    monthlyLimit: z.number().min(0).max(1_000_000).optional(),
+    rolloverEnabled: z.boolean().optional(),
+  })
+  .refine((v) => v.monthlyLimit !== undefined || v.rolloverEnabled !== undefined, {
+    message: "No fields to update",
+  });
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -22,6 +29,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  await prisma.category.update({ where: { id }, data: { monthlyLimit: parsed.data.monthlyLimit } });
+  const { monthlyLimit, rolloverEnabled } = parsed.data;
+  await prisma.category.update({
+    where: { id },
+    data: {
+      ...(monthlyLimit !== undefined ? { monthlyLimit } : {}),
+      ...(rolloverEnabled !== undefined ? { rolloverEnabled } : {}),
+    },
+  });
   return NextResponse.json({ ok: true });
 }
