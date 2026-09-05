@@ -61,8 +61,18 @@ export type LeafDisplayRow = {
   rolloverAmount?: number;
 };
 
-/** Flattens a group's children into leaf rows, inserting a sub-header boundary for any intermediate grouping level. */
-export function flattenLeaves(node: AggregatedNode, isIncome: boolean, ancestors: { name: string; icon: string }[] = []): LeafDisplayRow[] {
+/**
+ * Flattens a group's children into leaf rows, inserting a sub-header boundary for any
+ * intermediate grouping level BELOW the top-level group itself — the top-level group's own
+ * name is never repeated as a sub-header, since the caller already renders it as the group
+ * heading (only genuinely nested tiers, like Money In > Income, need a sub-header).
+ */
+export function flattenLeaves(
+  node: AggregatedNode,
+  isIncome: boolean,
+  ancestors: { name: string; icon: string }[] = [],
+  isTopLevel = true,
+): LeafDisplayRow[] {
   if (node.children.length === 0) {
     return [
       {
@@ -75,5 +85,6 @@ export function flattenLeaves(node: AggregatedNode, isIncome: boolean, ancestors
       },
     ];
   }
-  return node.children.flatMap((child) => flattenLeaves(child, isIncome, [...ancestors, { name: node.name, icon: node.icon }]));
+  const nextAncestors = isTopLevel ? ancestors : [...ancestors, { name: node.name, icon: node.icon }];
+  return node.children.flatMap((child) => flattenLeaves(child, isIncome, nextAncestors, false));
 }

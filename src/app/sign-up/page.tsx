@@ -52,7 +52,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-brand-dark px-6">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-brand-dark px-6">
       <LogoWordmark
         height={56}
         className="mb-4"

@@ -61,6 +61,10 @@
   --font-sans: var(--font-satoshi);
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--page);
   color: var(--ink);
