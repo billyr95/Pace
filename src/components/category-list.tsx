@@ -65,8 +65,12 @@ export function CategoryList({
                   )
                 ) : editingId === category.id ? (
                   <span className="flex items-center gap-1 text-sm">
+                    <label htmlFor={`budget-${category.id}`} className="text-xs text-brand-forest/50">
+                      Proposed
+                    </label>
                     $
                     <input
+                      id={`budget-${category.id}`}
                       autoFocus
                       type="number"
                       min={0}
@@ -90,7 +94,7 @@ export function CategoryList({
                     }}
                     className="text-xs font-medium text-brand-forest/60 underline"
                   >
-                    {hasLimit ? "Edit" : "Set budget"}
+                    {hasLimit ? "Edit proposed" : "Set proposed budget"}
                   </button>
                 )}
               </div>
@@ -104,14 +108,14 @@ export function CategoryList({
                       />
                     </div>
                     <p className="mt-1 text-xs text-brand-forest/60">
-                      ${category.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} / $
-                      {limit.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      ${category.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} actual / $
+                      {limit.toLocaleString(undefined, { maximumFractionDigits: 0 })} proposed
                     </p>
                   </>
                 ) : (
                   category.amount > 0 && (
                     <p className="text-xs text-brand-forest/50">
-                      ${category.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} spent, no budget set
+                      ${category.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} actual, no proposed budget set
                     </p>
                   )
                 ))}

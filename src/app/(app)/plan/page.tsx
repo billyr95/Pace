@@ -62,12 +62,12 @@ export default async function PlanPage() {
           <p className="text-sm text-brand-forest/70">
             ${Math.max(0, left).toLocaleString(undefined, { maximumFractionDigits: 0 })} left
           </p>
-          <p className="text-xs text-brand-forest/50">to budget this month</p>
+          <p className="text-xs text-brand-forest/50">of proposed budget this month</p>
         </div>
         <CircularProgress
           pct={pct}
           label={`$${totalSpent.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
-          sublabel={`of $${totalBudget.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          sublabel={`of $${totalBudget.toLocaleString(undefined, { maximumFractionDigits: 0 })} proposed`}
         />
       </div>
 
