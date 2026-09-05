@@ -33,10 +33,14 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-brand-paper px-6">
-      <LogoWordmark className="mb-8" />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-brand-dark px-6">
+      <LogoWordmark height={56} className="mb-4" />
+      <p className="mb-8 text-center text-sm">
+        <span className="text-brand-paper/80">Finance that moves with you.</span>{" "}
+        <span className="font-medium text-brand-green">Not against you.</span>
+      </p>
       <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-sm">
-        <h1 className="text-lg font-bold">Welcome back</h1>
+        <h1 className="text-lg font-bold">Sign in</h1>
         <div className="space-y-1">
           <label className="text-sm font-medium text-brand-forest" htmlFor="email">
             Email
