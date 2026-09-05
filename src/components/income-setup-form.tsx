@@ -34,7 +34,7 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
   if (!editing && profile) {
     return (
       <div className="flex items-center justify-between text-sm">
-        <p className="text-brand-forest/70">
+        <p className="text-secondary/70">
           {PAY_FREQUENCY_LABELS[profile.frequency]}
           {profile.amount != null && (
             <>
@@ -47,7 +47,7 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="text-xs font-medium text-brand-forest/60 underline"
+          className="text-xs font-medium text-secondary/60 underline"
         >
           Edit
         </button>
@@ -58,11 +58,11 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
   return (
     <form onSubmit={onSubmit} className="space-y-3">
       <div className="space-y-1">
-        <label className="text-xs font-medium text-brand-forest/70">How often do you get paid?</label>
+        <label className="text-xs font-medium text-secondary/70">How often do you get paid?</label>
         <select
           value={frequency}
           onChange={(e) => setFrequency(e.target.value as PayFrequency)}
-          className="w-full rounded-lg border border-brand-mist bg-brand-paper px-3 py-2 text-sm outline-none focus:border-brand-green"
+          className="w-full rounded-lg border border-divider bg-muted px-3 py-2 text-sm outline-none focus:border-brand-green"
         >
           {PAY_FREQUENCIES.map((f) => (
             <option key={f} value={f}>
@@ -75,7 +75,7 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
       {frequency !== "irregular" && (
         <>
           <div className="space-y-1">
-            <label className="text-xs font-medium text-brand-forest/70">
+            <label className="text-xs font-medium text-secondary/70">
               {variable ? "Average take-home per paycheck" : "Take-home per paycheck"}
             </label>
             <input
@@ -85,10 +85,10 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full rounded-lg border border-brand-mist bg-brand-paper px-3 py-2 text-sm outline-none focus:border-brand-green"
+              className="w-full rounded-lg border border-divider bg-muted px-3 py-2 text-sm outline-none focus:border-brand-green"
             />
           </div>
-          <label className="flex items-center gap-2 text-xs text-brand-forest/70">
+          <label className="flex items-center gap-2 text-xs text-secondary/70">
             <input type="checkbox" checked={variable} onChange={(e) => setVariable(e.target.checked)} />
             My paycheck amount varies (this is just a typical average)
           </label>
@@ -107,7 +107,7 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
           <button
             type="button"
             onClick={() => setEditing(false)}
-            className="rounded-full px-4 py-1.5 text-xs font-semibold text-brand-forest/60"
+            className="rounded-full px-4 py-1.5 text-xs font-semibold text-secondary/60"
           >
             Cancel
           </button>

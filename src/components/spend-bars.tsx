@@ -7,7 +7,7 @@ export type SpendBarGroup = { id: string; name: string; icon: string; total: num
 
 export function CategorySpendBars({ groups }: { groups: SpendBarGroup[] }) {
   if (groups.length === 0) {
-    return <p className="text-sm text-brand-forest/50">No spending yet this month.</p>;
+    return <p className="text-sm text-secondary/50">No spending yet this month.</p>;
   }
   return (
     <div className="space-y-5">
@@ -36,7 +36,7 @@ function SpendBarRow({ group }: { group: SpendBarGroup }) {
           <span className="text-sm leading-none">{group.icon}</span>
           {group.name}
         </span>
-        <span className="tabular-nums text-brand-forest/70">
+        <span className="tabular-nums text-secondary/70">
           ${group.total.toLocaleString(undefined, { maximumFractionDigits: 0 })}
         </span>
       </div>

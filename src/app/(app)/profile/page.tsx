@@ -2,6 +2,7 @@ import { auth, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { LogoMark } from "@/components/logo";
 import { ConnectBankButton } from "@/components/connect-bank-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Building2 } from "lucide-react";
 
 export default async function ProfilePage() {
@@ -16,19 +17,19 @@ export default async function ProfilePage() {
         <LogoMark size={48} />
         <div>
           <p className="font-black">{session!.user.name}</p>
-          <p className="text-sm text-brand-forest/60">{session!.user.email}</p>
+          <p className="text-sm text-secondary/60">{session!.user.email}</p>
         </div>
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-brand-forest/70">Linked institutions</h2>
+        <h2 className="mb-2 text-sm font-semibold text-secondary/70">Linked institutions</h2>
         {plaidItems.length === 0 ? (
-          <p className="text-sm text-brand-forest/60">No banks connected yet.</p>
+          <p className="text-sm text-secondary/60">No banks connected yet.</p>
         ) : (
           <ul className="space-y-2">
             {plaidItems.map((item) => (
-              <li key={item.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-mist text-brand-forest">
+              <li key={item.id} className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-secondary">
                   <Building2 size={18} />
                 </span>
                 <span className="text-sm font-semibold">{item.institutionName ?? "Connected bank"}</span>
@@ -39,13 +40,18 @@ export default async function ProfilePage() {
         <ConnectBankButton className="mt-3 w-full" />
       </div>
 
+      <div>
+        <h2 className="mb-2 text-sm font-semibold text-secondary/70">Appearance</h2>
+        <ThemeToggle />
+      </div>
+
       <form
         action={async () => {
           "use server";
           await signOut({ redirectTo: "/sign-in" });
         }}
       >
-        <button type="submit" className="w-full rounded-full border border-brand-mist py-2.5 font-semibold text-brand-dark">
+        <button type="submit" className="w-full rounded-full border border-divider py-2.5 font-semibold text-ink">
           Sign out
         </button>
       </form>

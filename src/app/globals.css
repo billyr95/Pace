@@ -4,11 +4,42 @@
   --background: #f7f9f7;
   --foreground: #0e1b14;
 
+  /* Fixed brand colors — same in both themes, used for intentional brand surfaces
+     (the sign-in hero, the accent green, buttons) rather than structural page/card
+     chrome, which uses the semantic tokens below instead. */
   --color-brand-green: #47d67a;
   --color-brand-dark: #0e1b14;
   --color-brand-forest: #33463b;
   --color-brand-mist: #e6ede9;
   --color-brand-paper: #f7f9f7;
+
+  /* Semantic tokens — these flip between light/dark. */
+  --page: #f7f9f7;
+  --surface: #ffffff;
+  --ink: #0e1b14;
+  --secondary: #33463b;
+  --muted-bg: #e6ede9;
+  --divider: #e6ede9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0e1b14;
+    --surface: #17251d;
+    --ink: #f7f9f7;
+    --secondary: #8fa396;
+    --muted-bg: #22322a;
+    --divider: #22322a;
+  }
+}
+
+:root[data-theme="dark"] {
+  --page: #0e1b14;
+  --surface: #17251d;
+  --ink: #f7f9f7;
+  --secondary: #8fa396;
+  --muted-bg: #22322a;
+  --divider: #22322a;
 }
 
 @theme inline {
@@ -19,10 +50,18 @@
   --color-brand-forest: var(--color-brand-forest);
   --color-brand-mist: var(--color-brand-mist);
   --color-brand-paper: var(--color-brand-paper);
+
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted-bg);
+  --color-divider: var(--divider);
+
   --font-sans: var(--font-satoshi);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--page);
+  color: var(--ink);
 }

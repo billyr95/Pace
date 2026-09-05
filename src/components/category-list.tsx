@@ -49,7 +49,7 @@ export function CategoryList({
         return (
           <li key={category.id}>
             {showSectionHeader && (
-              <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-brand-forest/50">
+              <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-secondary/50">
                 <span className="text-sm leading-none">{section.icon}</span>
                 {section.name}
               </div>
@@ -65,7 +65,7 @@ export function CategoryList({
                   )
                 ) : editingId === category.id ? (
                   <span className="flex items-center gap-1 text-sm">
-                    <label htmlFor={`budget-${category.id}`} className="text-xs text-brand-forest/50">
+                    <label htmlFor={`budget-${category.id}`} className="text-xs text-secondary/50">
                       Proposed
                     </label>
                     $
@@ -76,7 +76,7 @@ export function CategoryList({
                       min={0}
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
-                      className="w-16 rounded border border-brand-mist px-1 py-0.5"
+                      className="w-16 rounded border border-divider px-1 py-0.5"
                     />
                     <button
                       onClick={() => save(category.id)}
@@ -92,7 +92,7 @@ export function CategoryList({
                       setEditingId(category.id);
                       setDraft(hasLimit ? String(limit) : "");
                     }}
-                    className="text-xs font-medium text-brand-forest/60 underline"
+                    className="text-xs font-medium text-secondary/60 underline"
                   >
                     {hasLimit ? "Edit proposed" : "Set proposed budget"}
                   </button>
@@ -101,26 +101,26 @@ export function CategoryList({
               {!isIncome &&
                 (hasLimit ? (
                   <>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-brand-mist">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                       <div
                         className={`h-full rounded-full ${over ? "bg-red-400" : "bg-brand-green"}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <p className="mt-1 text-xs text-brand-forest/60">
+                    <p className="mt-1 text-xs text-secondary/60">
                       ${category.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} actual / $
                       {limit.toLocaleString(undefined, { maximumFractionDigits: 0 })} proposed
                     </p>
                   </>
                 ) : (
                   category.amount > 0 && (
-                    <p className="text-xs text-brand-forest/50">
+                    <p className="text-xs text-secondary/50">
                       ${category.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} actual, no proposed budget set
                     </p>
                   )
                 ))}
               {!isIncome && category.priorAmount !== undefined && priorMonthLabel && (
-                <p className="mt-0.5 text-[11px] text-brand-forest/40">
+                <p className="mt-0.5 text-[11px] text-secondary/40">
                   ${category.priorAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} in {priorMonthLabel}
                 </p>
               )}

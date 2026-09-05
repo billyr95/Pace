@@ -31,7 +31,7 @@ export function SpendPieChart({
 
   if (total <= 0 || slices.length === 0) {
     return (
-      <p className="text-sm text-brand-forest/50">
+      <p className="text-sm text-secondary/50">
         Nothing {verb} {rangePhrase} yet.
       </p>
     );
@@ -51,15 +51,15 @@ export function SpendPieChart({
       <p className="mb-3 text-sm">
         {active ? (
           <>
-            <span className="font-semibold text-brand-dark">{active.name}</span>
-            <span className="text-brand-forest/60">
+            <span className="font-semibold text-ink">{active.name}</span>
+            <span className="text-secondary/60">
               {" "}
               — ${active.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} (
               {Math.round((active.amount / total) * 100)}%)
             </span>
           </>
         ) : (
-          <span className="text-brand-forest/60">
+          <span className="text-secondary/60">
             ${total.toLocaleString(undefined, { maximumFractionDigits: 0 })} {verb} {rangePhrase}
           </span>
         )}
@@ -71,7 +71,7 @@ export function SpendPieChart({
               key={w.name}
               d={w.d}
               fill={w.color}
-              stroke="#fff"
+              style={{ stroke: "var(--surface)" }}
               strokeWidth={1.5}
               opacity={hovered === null || hovered === w.i ? 1 : 0.35}
               className="cursor-pointer transition-opacity"
@@ -92,10 +92,10 @@ export function SpendPieChart({
               onMouseLeave={() => setHovered(null)}
             >
               <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: slice.color }} />
-              <span className={`truncate ${hovered === i ? "font-semibold text-brand-dark" : "text-brand-forest/70"}`}>
+              <span className={`truncate ${hovered === i ? "font-semibold text-ink" : "text-secondary/70"}`}>
                 {slice.name}
               </span>
-              <span className="ml-auto shrink-0 tabular-nums text-brand-forest/50">
+              <span className="ml-auto shrink-0 tabular-nums text-secondary/50">
                 {Math.round((slice.amount / total) * 100)}%
               </span>
             </div>

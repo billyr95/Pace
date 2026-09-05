@@ -72,8 +72,8 @@ function OptionNode({
         type="button"
         onClick={() => onSelect(node.id)}
         style={{ paddingLeft: `${0.75 + depth * 0.9}rem` }}
-        className={`flex w-full items-center gap-1.5 py-1.5 pr-3 text-left text-sm hover:bg-brand-mist/40 ${
-          value === node.id ? "bg-brand-green/10 font-semibold text-brand-dark" : "text-brand-forest"
+        className={`flex w-full items-center gap-1.5 py-1.5 pr-3 text-left text-sm hover:bg-muted/40 ${
+          value === node.id ? "bg-brand-green/10 font-semibold text-ink" : "text-secondary"
         }`}
       >
         {showIcon && node.icon && <span className="text-sm leading-none">{node.icon}</span>}
@@ -120,15 +120,15 @@ function DropdownPanel({
     : categories;
 
   return (
-    <div className="absolute left-0 z-20 mt-1 w-72 overflow-hidden rounded-xl border border-brand-mist bg-white shadow-lg">
-      <div className="flex items-center gap-1.5 border-b border-brand-mist px-2.5 py-2">
-        <Search size={14} className="text-brand-forest/40" />
+    <div className="absolute left-0 z-20 mt-1 w-72 overflow-hidden rounded-xl border border-divider bg-surface shadow-lg">
+      <div className="flex items-center gap-1.5 border-b border-divider px-2.5 py-2">
+        <Search size={14} className="text-secondary/40" />
         <input
           ref={searchRef}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search categories…"
-          className="w-full text-sm outline-none placeholder:text-brand-forest/40"
+          className="w-full text-sm outline-none placeholder:text-secondary/40"
         />
       </div>
 
@@ -140,42 +140,42 @@ function DropdownPanel({
                 key={option.id}
                 type="button"
                 onClick={() => select(option.id)}
-                className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-brand-mist/40 ${
-                  value === option.id ? "bg-brand-green/10 font-semibold text-brand-dark" : "text-brand-forest"
+                className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-muted/40 ${
+                  value === option.id ? "bg-brand-green/10 font-semibold text-ink" : "text-secondary"
                 }`}
               >
                 <span className="text-sm leading-none">{option.icon}</span>
                 <span className="flex-1 truncate">{option.name}</span>
                 {option.breadcrumb && (
-                  <span className="shrink-0 text-[11px] text-brand-forest/40">{option.breadcrumb}</span>
+                  <span className="shrink-0 text-[11px] text-secondary/40">{option.breadcrumb}</span>
                 )}
               </button>
             ))
           ) : (
-            <p className="px-3 py-4 text-center text-sm text-brand-forest/50">No matching categories</p>
+            <p className="px-3 py-4 text-center text-sm text-secondary/50">No matching categories</p>
           )
         ) : (
           <>
             <button
               type="button"
               onClick={() => select(null)}
-              className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-brand-mist/40 ${
-                !value ? "font-semibold text-brand-dark" : "text-brand-forest/70"
+              className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-muted/40 ${
+                !value ? "font-semibold text-ink" : "text-secondary/70"
               }`}
             >
-              <Circle size={12} className="text-brand-forest/40" />
+              <Circle size={12} className="text-secondary/40" />
               Uncategorized
             </button>
 
             {hasIncomeGroups && (
-              <div className="mt-1 flex gap-1 border-y border-brand-mist bg-brand-paper/60 px-2 py-1.5">
+              <div className="mt-1 flex gap-1 border-y border-divider bg-muted/60 px-2 py-1.5">
                 {(["spent", "income"] as const).map((t) => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => setTab(t)}
                     className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${
-                      tab === t ? "bg-brand-dark text-brand-paper" : "text-brand-forest/60 hover:bg-brand-mist"
+                      tab === t ? "bg-brand-dark text-brand-paper" : "text-secondary/60 hover:bg-muted"
                     }`}
                   >
                     {t === "spent" ? "Spent" : "Money In"}
@@ -191,7 +191,7 @@ function DropdownPanel({
                 <OptionNode key={group.id} node={group} depth={0} value={value} showIcon onSelect={select} />
               ) : (
                 <div key={group.id} className="mt-1 first:mt-0">
-                  <div className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wide text-brand-forest/50 uppercase">
+                  <div className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wide text-secondary/50 uppercase">
                     <span className="text-sm leading-none normal-case">{group.icon}</span>
                     {group.name}
                   </div>
@@ -249,7 +249,7 @@ export function CategoryPicker({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-full border border-brand-mist bg-brand-paper px-2.5 py-1 text-xs font-medium text-brand-forest transition hover:border-brand-green/50"
+        className="flex items-center gap-1.5 rounded-full border border-divider bg-muted px-2.5 py-1 text-xs font-medium text-secondary transition hover:border-brand-green/50"
       >
         {selected ? (
           <>
@@ -258,11 +258,11 @@ export function CategoryPicker({
           </>
         ) : (
           <>
-            <Circle size={12} className="text-brand-forest/40" />
+            <Circle size={12} className="text-secondary/40" />
             <span>Uncategorized</span>
           </>
         )}
-        <ChevronDown size={13} className={`text-brand-forest/50 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={13} className={`text-secondary/50 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && <DropdownPanel categories={categories} value={value} select={select} />}

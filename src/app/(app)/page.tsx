@@ -50,7 +50,7 @@ export default async function HomePage() {
     <div className="space-y-6 px-5 pt-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-brand-forest/70">
+          <p className="text-sm text-secondary/70">
             {greeting}, {session!.user.name?.split(" ")[0] ?? "there"}
           </p>
         </div>
@@ -60,14 +60,14 @@ export default async function HomePage() {
             await signOut({ redirectTo: "/sign-in" });
           }}
         >
-          <button type="submit" className="text-xs font-medium text-brand-forest/60 underline">
+          <button type="submit" className="text-xs font-medium text-secondary/60 underline">
             Sign out
           </button>
         </form>
       </div>
 
       <div>
-        <p className="text-sm text-brand-forest/70">Current balance</p>
+        <p className="text-sm text-secondary/70">Current balance</p>
         <p className="text-3xl font-black tracking-tight">
           ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
@@ -80,14 +80,14 @@ export default async function HomePage() {
       </div>
 
       {accounts.length > 0 ? (
-        <div className="rounded-2xl bg-white p-4 shadow-sm">
+        <div className="rounded-2xl bg-surface p-4 shadow-sm">
           <BalanceTrendChart points={balanceHistory} />
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-brand-mist bg-white p-8 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-divider bg-surface p-8 text-center">
           <LogoMark size={40} />
           <p className="font-semibold">Connect your first account</p>
-          <p className="text-sm text-brand-forest/70">
+          <p className="text-sm text-secondary/70">
             Link a bank account to see real balances, transactions, and budgets here.
           </p>
           <ConnectBankButton className="mt-2" />
@@ -112,18 +112,18 @@ export default async function HomePage() {
 
       {accounts.length > 0 && (
         <div>
-          <h2 className="mb-2 text-sm font-semibold text-brand-forest/70">Accounts</h2>
+          <h2 className="mb-2 text-sm font-semibold text-secondary/70">Accounts</h2>
           <ul className="space-y-2">
             {accounts.map((account) => {
               const Icon = accountIcon(account.type);
               return (
-                <li key={account.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
+                <li key={account.id} className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-green/15 text-brand-green">
                     <Icon size={18} />
                   </span>
                   <span className="flex-1">
                     <p className="text-sm font-semibold">{account.name}</p>
-                    {account.mask && <p className="text-xs text-brand-forest/60">•••• {account.mask}</p>}
+                    {account.mask && <p className="text-xs text-secondary/60">•••• {account.mask}</p>}
                   </span>
                   <span className="font-semibold">
                     ${(account.currentBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}

@@ -39,7 +39,7 @@ export function TransactionList({
     <>
       {Array.from(grouped.entries()).map(([day, rows]) => (
         <div key={day}>
-          <h2 className="mb-2 text-xs font-semibold text-brand-forest/50">
+          <h2 className="mb-2 text-xs font-semibold text-secondary/50">
             {new Date(day).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
           </h2>
           <ul className="space-y-2">

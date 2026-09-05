@@ -57,12 +57,12 @@ export default async function PlanPage() {
     <div className="space-y-6 px-5 pt-6">
       <h1 className="text-xl font-black">Plan</h1>
 
-      <div className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between rounded-2xl bg-surface p-4 shadow-sm">
         <div>
-          <p className="text-sm text-brand-forest/70">
+          <p className="text-sm text-secondary/70">
             ${Math.max(0, left).toLocaleString(undefined, { maximumFractionDigits: 0 })} left
           </p>
-          <p className="text-xs text-brand-forest/50">of proposed budget this month</p>
+          <p className="text-xs text-secondary/50">of proposed budget this month</p>
         </div>
         <CircularProgress
           pct={pct}
@@ -72,9 +72,9 @@ export default async function PlanPage() {
       </div>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-brand-forest/70">Categories</h2>
+        <h2 className="mb-3 text-sm font-semibold text-secondary/70">Categories</h2>
         {groups.length === 0 ? (
-          <p className="text-sm text-brand-forest/60">No categories yet.</p>
+          <p className="text-sm text-secondary/60">No categories yet.</p>
         ) : (
           <ul className="space-y-2">
             {groups.map((group) => {
@@ -83,7 +83,7 @@ export default async function PlanPage() {
                 priorAmount: group.isIncome ? undefined : (priorMonthByCategory.get(leaf.id) ?? 0),
               }));
               return (
-                <li key={group.id} className="rounded-2xl bg-white shadow-sm">
+                <li key={group.id} className="rounded-2xl bg-surface shadow-sm">
                   <details className="group">
                     <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 [&::-webkit-details-marker]:hidden">
                       <span className="text-lg leading-none">{group.icon}</span>
@@ -95,20 +95,20 @@ export default async function PlanPage() {
                           </span>
                         )
                       ) : group.totalBudget > 0 ? (
-                        <span className="text-xs text-brand-forest/60">
+                        <span className="text-xs text-secondary/60">
                           ${group.totalSpent.toLocaleString(undefined, { maximumFractionDigits: 0 })} / $
                           {group.totalBudget.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </span>
                       ) : (
                         group.totalSpent > 0 && (
-                          <span className="text-xs text-brand-forest/50">
+                          <span className="text-xs text-secondary/50">
                             ${group.totalSpent.toLocaleString(undefined, { maximumFractionDigits: 0 })} spent
                           </span>
                         )
                       )}
                       <svg
                         viewBox="0 0 20 20"
-                        className="h-4 w-4 shrink-0 text-brand-forest/40 transition-transform group-open:rotate-180"
+                        className="h-4 w-4 shrink-0 text-secondary/40 transition-transform group-open:rotate-180"
                         fill="currentColor"
                       >
                         <path
@@ -121,7 +121,7 @@ export default async function PlanPage() {
                         />
                       </svg>
                     </summary>
-                    <div className="border-t border-brand-mist px-4 py-3">
+                    <div className="border-t border-divider px-4 py-3">
                       <CategoryList categories={leaves} isIncome={group.isIncome} priorMonthLabel={priorMonthLabel} />
                     </div>
                   </details>

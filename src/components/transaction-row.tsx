@@ -37,7 +37,7 @@ export function TransactionRow({
   }
 
   return (
-    <li className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
+    <li className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm">
       <span className="flex-1 min-w-0">
         <p className="truncate text-sm font-semibold">{transaction.merchantName ?? transaction.name}</p>
         <div className="mt-1">
@@ -49,9 +49,9 @@ export function TransactionRow({
           </p>
         )}
       </span>
-      <span className={`shrink-0 font-semibold ${isInflow ? "text-brand-green" : "text-brand-dark"}`}>
+      <span className={`shrink-0 font-semibold ${isInflow ? "text-brand-green" : "text-ink"}`}>
         {isInflow ? "+" : "-"}${Math.abs(transaction.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-        {transaction.pending && <span className="ml-1 text-[10px] font-normal text-brand-forest/50">pending</span>}
+        {transaction.pending && <span className="ml-1 text-[10px] font-normal text-secondary/50">pending</span>}
       </span>
     </li>
   );

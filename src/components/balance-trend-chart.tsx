@@ -34,7 +34,7 @@ export function BalanceTrendChart({ points }: { points: BalancePoint[] }) {
   }, [points]);
 
   if (points.length < 2) {
-    return <div className="flex h-[120px] items-center justify-center text-sm text-brand-forest/60">Not enough history yet</div>;
+    return <div className="flex h-[120px] items-center justify-center text-sm text-secondary/60">Not enough history yet</div>;
   }
 
   const active = hoverIndex !== null ? points[hoverIndex] : null;
@@ -65,9 +65,25 @@ export function BalanceTrendChart({ points }: { points: BalancePoint[] }) {
         <path d={areaPath} fill={`url(#${gradientId})`} />
         <path d={path} fill="none" stroke="#47D67A" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
         {activeCoord && (
-          <line x1={activeCoord.x} y1={0} x2={activeCoord.x} y2={HEIGHT} stroke="#33463B" strokeOpacity={0.2} strokeWidth={1} />
+          <line
+            x1={activeCoord.x}
+            y1={0}
+            x2={activeCoord.x}
+            y2={HEIGHT}
+            style={{ stroke: "var(--secondary)" }}
+            strokeOpacity={0.3}
+            strokeWidth={1}
+          />
         )}
-        {activeCoord && <circle cx={activeCoord.x} cy={activeCoord.y} r={4} fill="#0E1B14" stroke="#F7F9F7" strokeWidth={2} />}
+        {activeCoord && (
+          <circle
+            cx={activeCoord.x}
+            cy={activeCoord.y}
+            r={4}
+            style={{ fill: "var(--ink)", stroke: "var(--surface)" }}
+            strokeWidth={2}
+          />
+        )}
       </svg>
       {active && activeCoord && (
         <div
@@ -78,7 +94,7 @@ export function BalanceTrendChart({ points }: { points: BalancePoint[] }) {
           {active.balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}
         </div>
       )}
-      <div className="mt-1 flex justify-between text-[10px] text-brand-forest/50">
+      <div className="mt-1 flex justify-between text-[10px] text-secondary/50">
         <span>{new Date(points[0].date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
         <span>{new Date(points[points.length - 1].date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
       </div>

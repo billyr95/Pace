@@ -11,7 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
-      <header className="flex items-center justify-center border-b border-brand-mist bg-white px-5 py-3">
+      <header className="flex items-center justify-center border-b border-divider bg-surface px-5 py-3">
         <LogoWordmark height={20} />
       </header>
       <div className="flex-1 overflow-y-auto pb-4">{children}</div>
