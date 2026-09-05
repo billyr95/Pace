@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { CategoryPicker, type CategoryNode } from "@/components/category-picker";
 
@@ -11,6 +11,16 @@ export type MerchantRuleData = {
   categoryId: string;
 };
 
+function buildTopLevelIndex(categories: CategoryNode[]): Map<string, { name: string; icon: string }> {
+  const index = new Map<string, { name: string; icon: string }>();
+  function walk(node: CategoryNode, top: { name: string; icon: string }) {
+    index.set(node.id, top);
+    for (const child of node.children) walk(child, top);
+  }
+  for (const root of categories) walk(root, { name: root.name, icon: root.icon });
+  return index;
+}
+
 export function MerchantRuleList({
   rules,
   categories,
@@ -19,6 +29,21 @@ export function MerchantRuleList({
   categories: CategoryNode[];
 }) {
   const [items, setItems] = useState(rules);
+  const topLevelIndex = useMemo(() => buildTopLevelIndex(categories), [categories]);
+
+  const groups = useMemo(() => {
+    const byGroup = new Map<string, { icon: string; rules: MerchantRuleData[] }>();
+    for (const rule of items) {
+      const top = topLevelIndex.get(rule.categoryId) ?? { name: "Other", icon: "" };
+      const group = byGroup.get(top.name) ?? { icon: top.icon, rules: [] };
+      group.rules.push(rule);
+      byGroup.set(top.name, group);
+    }
+    for (const group of byGroup.values()) {
+      group.rules.sort((a, b) => a.merchant.localeCompare(b.merchant));
+    }
+    return Array.from(byGroup.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [items, topLevelIndex]);
 
   async function updateCategory(id: string, categoryId: string | null) {
     if (!categoryId) return;
@@ -40,28 +65,38 @@ export function MerchantRuleList({
   }
 
   return (
-    <ul className="space-y-2">
-      {items.map((rule) => (
-        <li key={rule.id} className="flex items-center gap-2 rounded-2xl bg-surface p-3 shadow-sm">
-          <span className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold capitalize">{rule.merchant}</p>
-            <p className="text-xs text-secondary/50">{rule.direction === "in" ? "Money in" : "Money out"}</p>
-          </span>
-          <CategoryPicker
-            categories={categories}
-            value={rule.categoryId}
-            onChange={(categoryId) => updateCategory(rule.id, categoryId)}
-          />
-          <button
-            type="button"
-            onClick={() => remove(rule.id)}
-            aria-label="Delete rule"
-            className="shrink-0 rounded-full p-1.5 text-secondary/50 hover:bg-muted hover:text-secondary"
-          >
-            <X size={14} />
-          </button>
-        </li>
+    <div className="space-y-5">
+      {groups.map(([groupName, group]) => (
+        <div key={groupName}>
+          <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-secondary/50">
+            <span className="text-sm leading-none">{group.icon}</span>
+            {groupName}
+          </h2>
+          <ul className="space-y-2">
+            {group.rules.map((rule) => (
+              <li key={rule.id} className="flex items-center gap-2 rounded-2xl bg-surface p-3 shadow-sm">
+                <span className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold capitalize">{rule.merchant}</p>
+                  <p className="text-xs text-secondary/50">{rule.direction === "in" ? "Money in" : "Money out"}</p>
+                </span>
+                <CategoryPicker
+                  categories={categories}
+                  value={rule.categoryId}
+                  onChange={(categoryId) => updateCategory(rule.id, categoryId)}
+                />
+                <button
+                  type="button"
+                  onClick={() => remove(rule.id)}
+                  aria-label="Delete rule"
+                  className="shrink-0 rounded-full p-1.5 text-secondary/50 hover:bg-muted hover:text-secondary"
+                >
+                  <X size={14} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }

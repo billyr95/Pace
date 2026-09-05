@@ -1,31 +1,19 @@
+import Link from "next/link";
 import { auth, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { LogoMark } from "@/components/logo";
 import { ConnectBankButton } from "@/components/connect-bank-button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { MerchantRuleList, type MerchantRuleData } from "@/components/merchant-rule-list";
-import { fetchCategoryTree } from "@/lib/category-node";
-import { Building2 } from "lucide-react";
+import { Building2, ChevronRight, Repeat } from "lucide-react";
 
 export default async function ProfilePage() {
   const session = await auth();
   const userId = session!.user.id;
 
-  const [plaidItems, rawRules, categoryGroups] = await Promise.all([
+  const [plaidItems, ruleCount] = await Promise.all([
     prisma.plaidItem.findMany({ where: { userId } }),
-    prisma.merchantRule.findMany({ where: { userId }, orderBy: { matchKey: "asc" } }),
-    fetchCategoryTree(userId),
+    prisma.merchantRule.count({ where: { userId } }),
   ]);
-
-  const rules: MerchantRuleData[] = rawRules.map((r) => {
-    const separatorIndex = r.matchKey.lastIndexOf("::");
-    return {
-      id: r.id,
-      merchant: r.matchKey.slice(0, separatorIndex),
-      direction: r.matchKey.slice(separatorIndex + 2) === "in" ? "in" : "out",
-      categoryId: r.categoryId,
-    };
-  });
 
   return (
     <div className="space-y-6 px-5 pt-6">
@@ -58,7 +46,21 @@ export default async function ProfilePage() {
 
       <div>
         <h2 className="mb-2 text-sm font-semibold text-secondary/70">Auto-categorization rules</h2>
-        <MerchantRuleList rules={rules} categories={categoryGroups} />
+        <Link
+          href="/profile/merchant-rules"
+          className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-secondary">
+            <Repeat size={18} />
+          </span>
+          <span className="flex-1">
+            <p className="text-sm font-semibold">
+              {ruleCount} rule{ruleCount === 1 ? "" : "s"}
+            </p>
+            <p className="text-xs text-secondary/60">Organized by category</p>
+          </span>
+          <ChevronRight size={16} className="text-secondary/40" />
+        </Link>
       </div>
 
       <div>
