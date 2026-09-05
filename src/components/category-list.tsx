@@ -7,9 +7,11 @@ import type { LeafDisplayRow } from "@/lib/category-tree";
 export function CategoryList({
   categories,
   isIncome = false,
+  priorMonthLabel,
 }: {
   categories: LeafDisplayRow[];
   isIncome?: boolean;
+  priorMonthLabel?: string;
 }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -113,6 +115,11 @@ export function CategoryList({
                     </p>
                   )
                 ))}
+              {!isIncome && category.priorAmount !== undefined && priorMonthLabel && (
+                <p className="mt-0.5 text-[11px] text-brand-forest/40">
+                  ${category.priorAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} in {priorMonthLabel}
+                </p>
+              )}
             </div>
           </li>
         );

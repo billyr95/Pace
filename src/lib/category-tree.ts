@@ -51,6 +51,8 @@ export type LeafDisplayRow = {
   monthlyLimit: number | null;
   amount: number; // spent or received, whichever this subtree tracks
   sectionPath: { name: string; icon: string }[];
+  /** Same metric, but for the prior calendar month — attached by the caller, not computed here. */
+  priorAmount?: number;
 };
 
 /** Flattens a group's children into leaf rows, inserting a sub-header boundary for any intermediate grouping level. */

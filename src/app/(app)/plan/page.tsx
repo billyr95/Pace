@@ -12,25 +12,39 @@ export default async function PlanPage() {
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const priorMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const txSelect = { where: { date: { gte: monthStart } }, select: { amount: true } } as const;
 
-  const rawGroups = await prisma.category.findMany({
-    where: { userId, parentId: null },
-    orderBy: { name: "asc" },
-    include: {
-      transactions: txSelect,
-      children: {
-        orderBy: { name: "asc" },
-        include: {
-          transactions: txSelect,
-          children: {
-            orderBy: { name: "asc" },
-            include: { transactions: txSelect },
+  const [rawGroups, priorMonthTx] = await Promise.all([
+    prisma.category.findMany({
+      where: { userId, parentId: null },
+      orderBy: { name: "asc" },
+      include: {
+        transactions: txSelect,
+        children: {
+          orderBy: { name: "asc" },
+          include: {
+            transactions: txSelect,
+            children: {
+              orderBy: { name: "asc" },
+              include: { transactions: txSelect },
+            },
           },
         },
       },
-    },
-  });
+    }),
+    prisma.transaction.findMany({
+      where: { userId, date: { gte: priorMonthStart, lt: monthStart }, amount: { gt: 0 }, categoryId: { not: null } },
+      select: { categoryId: true, amount: true },
+    }),
+  ]);
+
+  const priorMonthByCategory = new Map<string, number>();
+  for (const t of priorMonthTx) {
+    if (!t.categoryId) continue;
+    priorMonthByCategory.set(t.categoryId, (priorMonthByCategory.get(t.categoryId) ?? 0) + t.amount);
+  }
+  const priorMonthLabel = priorMonthStart.toLocaleDateString(undefined, { month: "long" });
 
   const groups = rawGroups.map((g) => ({ ...aggregate(g), isIncome: INCOME_ROOT_CATEGORIES.has(g.name) }));
 
@@ -67,7 +81,10 @@ export default async function PlanPage() {
         ) : (
           <ul className="space-y-2">
             {groups.map((group) => {
-              const leaves = flattenLeaves(group, group.isIncome);
+              const leaves = flattenLeaves(group, group.isIncome).map((leaf) => ({
+                ...leaf,
+                priorAmount: group.isIncome ? undefined : (priorMonthByCategory.get(leaf.id) ?? 0),
+              }));
               return (
                 <li key={group.id} className="rounded-2xl bg-white shadow-sm">
                   <details className="group">
@@ -108,7 +125,7 @@ export default async function PlanPage() {
                       </svg>
                     </summary>
                     <div className="border-t border-brand-mist px-4 py-3">
-                      <CategoryList categories={leaves} isIncome={group.isIncome} />
+                      <CategoryList categories={leaves} isIncome={group.isIncome} priorMonthLabel={priorMonthLabel} />
                     </div>
                   </details>
                 </li>

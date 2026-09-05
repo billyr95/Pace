@@ -13,8 +13,14 @@ export default async function TransactionsPage() {
   const session = await auth();
   const userId = session!.user.id;
 
+  const yearStart = new Date(new Date().getFullYear(), 0, 1);
+
   const [transactions, rawCategories] = await Promise.all([
-    prisma.transaction.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 100 }),
+    prisma.transaction.findMany({
+      where: { userId, date: { gte: yearStart } },
+      orderBy: { date: "desc" },
+      take: 2000,
+    }),
     prisma.category.findMany({
       where: { userId, parentId: null },
       orderBy: { name: "asc" },
