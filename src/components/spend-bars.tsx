@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { ColoredAmount } from "@/lib/chart-palette";
 
 export type SpendBarGroup = { id: string; name: string; icon: string; total: number; segments: ColoredAmount[] };
@@ -20,6 +20,9 @@ export function CategorySpendBars({ groups }: { groups: SpendBarGroup[] }) {
 
 function SpendBarRow({ group }: { group: SpendBarGroup }) {
   const [hovered, setHovered] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [tooltipLeft, setTooltipLeft] = useState<number | null>(null);
 
   const positioned = group.segments.map((seg, i) => {
     const pct = (seg.amount / group.total) * 100;
@@ -28,6 +31,24 @@ function SpendBarRow({ group }: { group: SpendBarGroup }) {
     return { ...seg, pct, start, i };
   });
   const active = hovered !== null ? positioned[hovered] : null;
+
+  // Measured after the tooltip renders (so its real width is known) and clamped to the bar's
+  // own bounds, since a purely percentage-based position doesn't account for tooltip width and
+  // can push it past the screen edge for segments near either end of the bar.
+  useLayoutEffect(() => {
+    if (!active || !containerRef.current || !tooltipRef.current) {
+      setTooltipLeft(null);
+      return;
+    }
+    const containerWidth = containerRef.current.offsetWidth;
+    const tooltipWidth = tooltipRef.current.offsetWidth;
+    const desiredCenter = ((active.start + active.pct / 2) / 100) * containerWidth;
+    const halfTooltip = tooltipWidth / 2;
+    const margin = 4;
+    const min = Math.min(halfTooltip + margin, containerWidth / 2);
+    const max = Math.max(containerWidth - halfTooltip - margin, containerWidth / 2);
+    setTooltipLeft(Math.min(max, Math.max(min, desiredCenter)));
+  }, [active]);
 
   return (
     <div>
@@ -40,11 +61,12 @@ function SpendBarRow({ group }: { group: SpendBarGroup }) {
           ${group.total.toLocaleString(undefined, { maximumFractionDigits: 0 })}
         </span>
       </div>
-      <div className="relative">
+      <div className="relative" ref={containerRef}>
         {active && (
           <div
+            ref={tooltipRef}
             className="pointer-events-none absolute bottom-full z-10 mb-1.5 -translate-x-1/2 rounded-lg bg-brand-dark px-2 py-1 text-xs whitespace-nowrap text-brand-paper"
-            style={{ left: `${Math.min(94, Math.max(6, active.start + active.pct / 2))}%` }}
+            style={{ left: tooltipLeft ?? 0, visibility: tooltipLeft === null ? "hidden" : "visible" }}
           >
             {active.name}: ${active.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </div>
