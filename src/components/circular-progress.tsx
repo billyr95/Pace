@@ -1,4 +1,4 @@
-const SIZE = 120;
+const SIZE = 148;
 const STROKE = 10;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -38,7 +38,7 @@ export function CircularProgress({
           strokeDashoffset={offset}
         />
       </svg>
-      <div className="absolute flex flex-col items-center text-center">
+      <div className="absolute flex flex-col items-center gap-1 text-center" style={{ maxWidth: SIZE * 0.8 }}>
         <span className="text-base font-black">{label}</span>
         <span className="text-[11px] text-secondary/60">{sublabel}</span>
       </div>
