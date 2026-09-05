@@ -2,7 +2,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { CircularProgress } from "@/components/circular-progress";
 import { CategoryList } from "@/components/category-list";
-import { AutoAllocateButton } from "@/components/auto-allocate-button";
 import { aggregate, flattenLeaves } from "@/lib/category-tree";
 import { INCOME_ROOT_CATEGORIES } from "@/lib/default-categories";
 
@@ -71,8 +70,6 @@ export default async function PlanPage() {
           sublabel={`of $${totalBudget.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
         />
       </div>
-
-      <AutoAllocateButton />
 
       <div>
         <h2 className="mb-3 text-sm font-semibold text-brand-forest/70">Categories</h2>
