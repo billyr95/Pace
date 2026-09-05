@@ -10,11 +10,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
+    <div className="mx-auto flex w-full max-w-md flex-col">
       <header className="flex items-center justify-center border-b border-divider bg-surface px-5 py-3">
         <LogoWordmark height={20} />
       </header>
-      <div className="flex-1 overflow-y-auto pb-4">{children}</div>
+      <div className="pb-24">{children}</div>
       <BottomNav />
     </div>
   );

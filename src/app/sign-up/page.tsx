@@ -53,7 +53,12 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-brand-dark px-6">
-      <LogoWordmark height={56} className="mb-4" />
+      <LogoWordmark
+        height={56}
+        className="mb-4"
+        gapClassName="gap-4"
+        titleStyle={{ filter: "brightness(0) invert(1)" }}
+      />
       <p className="mb-8 text-center text-sm">
         <span className="text-brand-paper/80">Finance that moves with you.</span>{" "}
         <span className="font-medium text-brand-green">Not against you.</span>
