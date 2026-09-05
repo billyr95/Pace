@@ -16,11 +16,19 @@ function arcPath(startAngle: number, endAngle: number) {
   return `M${CX},${CY} L${x1.toFixed(2)},${y1.toFixed(2)} A${R},${R} 0 ${largeArc} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`;
 }
 
-export function SpendPieChart({ slices, total }: { slices: ColoredAmount[]; total: number }) {
+export function SpendPieChart({
+  slices,
+  total,
+  rangeLabel,
+}: {
+  slices: ColoredAmount[];
+  total: number;
+  rangeLabel: string;
+}) {
   const [hovered, setHovered] = useState<number | null>(null);
 
   if (total <= 0 || slices.length === 0) {
-    return <p className="text-sm text-brand-forest/50">No spending yet this month.</p>;
+    return <p className="text-sm text-brand-forest/50">No spending in the {rangeLabel} yet.</p>;
   }
 
   const wedges = slices.map((slice, i) => {
@@ -46,7 +54,7 @@ export function SpendPieChart({ slices, total }: { slices: ColoredAmount[]; tota
           </>
         ) : (
           <span className="text-brand-forest/60">
-            ${total.toLocaleString(undefined, { maximumFractionDigits: 0 })} spent this month
+            ${total.toLocaleString(undefined, { maximumFractionDigits: 0 })} spent in the {rangeLabel}
           </span>
         )}
       </p>

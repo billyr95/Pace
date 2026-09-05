@@ -4,19 +4,28 @@ import { aggregate } from "@/lib/category-tree";
 import { INCOME_ROOT_CATEGORIES } from "@/lib/default-categories";
 import { topNWithOther } from "@/lib/chart-palette";
 import { expectedMonthlyIncome, type PayFrequency } from "@/lib/income";
+import { DATE_RANGES, isDateRangeKey, type DateRangeKey } from "@/lib/date-range";
+import { DateRangeSelect } from "@/components/date-range-select";
 import { SpendPieChart } from "@/components/spend-pie-chart";
 import { CategorySpendBars } from "@/components/spend-bars";
 import { IncomeSetupForm, type IncomeProfileData } from "@/components/income-setup-form";
 
-export default async function InsightsPage() {
+export default async function InsightsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
   const session = await auth();
   const userId = session!.user.id;
 
+  const { range: rangeParam } = await searchParams;
+  const range: DateRangeKey = isDateRangeKey(rangeParam) ? rangeParam : "1m";
+
   const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const rangeStart = new Date(now.getTime() - DATE_RANGES[range].days * 24 * 60 * 60 * 1000);
   const yearStart = new Date(now.getFullYear(), 0, 1);
   const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-  const txSelect = { where: { date: { gte: monthStart } }, select: { amount: true } } as const;
+  const txSelect = { where: { date: { gte: rangeStart } }, select: { amount: true } } as const;
 
   const [rawGroups, incomeProfile, ytdIncomeTx, recentIncomeTx] = await Promise.all([
     prisma.category.findMany({
@@ -69,20 +78,24 @@ export default async function InsightsPage() {
   const projectedAnnual = ytdIncome + expectedThisMonth * monthsRemaining;
 
   const fmt = (n: number) => `$${Math.round(n).toLocaleString()}`;
+  const rangeLabel = DATE_RANGES[range].label.toLowerCase();
 
   return (
     <div className="space-y-6 px-5 pt-6">
-      <h1 className="text-xl font-black">Insights</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-black">Insights</h1>
+        <DateRangeSelect value={range} />
+      </div>
 
       <div className="rounded-2xl bg-white p-4 shadow-sm">
-        <p className="text-sm text-brand-forest/70">Spent this month</p>
+        <p className="text-sm text-brand-forest/70">Spent in the {rangeLabel}</p>
         <p className="text-2xl font-black">{fmt(totalSpent)}</p>
       </div>
 
       {pieSlices.length > 0 && (
         <div className="rounded-2xl bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-brand-forest/70">Spend by category</h2>
-          <SpendPieChart slices={pieSlices} total={totalSpent} />
+          <SpendPieChart slices={pieSlices} total={totalSpent} rangeLabel={rangeLabel} />
         </div>
       )}
 
@@ -94,7 +107,9 @@ export default async function InsightsPage() {
       )}
 
       {expenseGroups.length === 0 && (
-        <p className="text-sm text-brand-forest/60">Spending breakdowns will appear here once you have transactions.</p>
+        <p className="text-sm text-brand-forest/60">
+          No categorized spending in the {rangeLabel} yet — try a wider range above, or categorize some transactions.
+        </p>
       )}
 
       <div className="rounded-2xl bg-white p-4 shadow-sm">
