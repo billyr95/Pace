@@ -19,10 +19,10 @@ export default async function InsightsPage({
   const userId = session!.user.id;
 
   const { range: rangeParam } = await searchParams;
-  const range: DateRangeKey = isDateRangeKey(rangeParam) ? rangeParam : "1m";
+  const range: DateRangeKey = isDateRangeKey(rangeParam) ? rangeParam : "this_month";
 
   const now = new Date();
-  const rangeStart = new Date(now.getTime() - DATE_RANGES[range].days * 24 * 60 * 60 * 1000);
+  const rangeStart = DATE_RANGES[range].since(now);
   const yearStart = new Date(now.getFullYear(), 0, 1);
   const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
   const txSelect = { where: { date: { gte: rangeStart } }, select: { amount: true } } as const;
@@ -78,7 +78,7 @@ export default async function InsightsPage({
   const projectedAnnual = ytdIncome + expectedThisMonth * monthsRemaining;
 
   const fmt = (n: number) => `$${Math.round(n).toLocaleString()}`;
-  const rangeLabel = DATE_RANGES[range].label.toLowerCase();
+  const rangePhrase = range === "this_month" ? "this month" : `in the ${DATE_RANGES[range].label.toLowerCase()}`;
 
   return (
     <div className="space-y-6 px-5 pt-6">
@@ -88,14 +88,14 @@ export default async function InsightsPage({
       </div>
 
       <div className="rounded-2xl bg-white p-4 shadow-sm">
-        <p className="text-sm text-brand-forest/70">Spent in the {rangeLabel}</p>
+        <p className="text-sm text-brand-forest/70">Spent {rangePhrase}</p>
         <p className="text-2xl font-black">{fmt(totalSpent)}</p>
       </div>
 
       {pieSlices.length > 0 && (
         <div className="rounded-2xl bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-brand-forest/70">Spend by category</h2>
-          <SpendPieChart slices={pieSlices} total={totalSpent} rangeLabel={rangeLabel} />
+          <SpendPieChart slices={pieSlices} total={totalSpent} rangePhrase={rangePhrase} />
         </div>
       )}
 
@@ -108,7 +108,7 @@ export default async function InsightsPage({
 
       {expenseGroups.length === 0 && (
         <p className="text-sm text-brand-forest/60">
-          No categorized spending in the {rangeLabel} yet — try a wider range above, or categorize some transactions.
+          No categorized spending {rangePhrase} yet — try a wider range above, or categorize some transactions.
         </p>
       )}
 
