@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { CircularProgress } from "@/components/circular-progress";
 import { CategoryList } from "@/components/category-list";
 import { GoalList, type GoalRow } from "@/components/goal-list";
+import { AddCategoryForm } from "@/components/add-category-form";
 import { aggregate, flattenLeaves } from "@/lib/category-tree";
 import { INCOME_ROOT_CATEGORIES, GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
 
@@ -179,12 +180,13 @@ export default async function PlanPage() {
                         />
                       </svg>
                     </summary>
-                    <div className="border-t border-divider px-4 py-3">
+                    <div className="space-y-3 border-t border-divider px-4 py-3">
                       {group.isGoals ? (
                         <GoalList goals={goalRows} />
                       ) : (
                         <CategoryList categories={leaves} isIncome={group.isIncome} priorMonthLabel={priorMonthLabel} />
                       )}
+                      <AddCategoryForm parentId={group.id} label="Add subcategory" />
                     </div>
                   </details>
                 </li>
@@ -192,6 +194,9 @@ export default async function PlanPage() {
             })}
           </ul>
         )}
+        <div className="mt-2">
+          <AddCategoryForm parentId={null} label="Add category" />
+        </div>
       </div>
     </div>
   );
