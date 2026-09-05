@@ -19,6 +19,7 @@ model User {
   categories        Category[]
   transactions      Transaction[]
   merchantRules     MerchantRule[]
+  incomeProfile     IncomeProfile?
 }
 
 /// One Plaid Item = one bank-login connection, which can expose several accounts.
@@ -104,4 +105,17 @@ model MerchantRule {
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([userId, matchKey])
+}
+
+/// A user's declared pay schedule, used to project income and auto-set budgets
+/// without waiting for months of actual transaction history to accumulate.
+model IncomeProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  frequency  String
+  amount     Float?
+  variable   Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

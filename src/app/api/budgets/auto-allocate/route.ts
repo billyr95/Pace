@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { BUDGET_ALLOCATION_WEIGHTS } from "@/lib/budget-weights";
+import { expectedMonthlyIncome } from "@/lib/income";
 
 export async function POST() {
   const session = await auth();
@@ -12,15 +13,24 @@ export async function POST() {
   const userId = session.user.id;
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-  const incomeTransactions = await prisma.transaction.findMany({
-    where: { userId, date: { gte: thirtyDaysAgo }, amount: { lt: 0 } },
-    select: { amount: true },
-  });
-  const income = incomeTransactions.reduce((sum, t) => sum - t.amount, 0);
+  const [profile, incomeTransactions] = await Promise.all([
+    prisma.incomeProfile.findUnique({ where: { userId } }),
+    prisma.transaction.findMany({
+      where: { userId, date: { gte: thirtyDaysAgo }, amount: { lt: 0 } },
+      select: { amount: true },
+    }),
+  ]);
+  const trailingActual = incomeTransactions.reduce((sum, t) => sum - t.amount, 0);
+  // A declared pay schedule is a more reliable basis than 30 days of transaction
+  // history, especially for a new account — prefer it when set.
+  const income = expectedMonthlyIncome(profile, trailingActual);
 
   if (income <= 0) {
     return NextResponse.json(
-      { error: "No income found in the last 30 days yet — connect an account or add some income transactions first." },
+      {
+        error:
+          "No income to work from yet — set your pay schedule on the Insights tab, or connect an account with some income transactions.",
+      },
       { status: 400 },
     );
   }
