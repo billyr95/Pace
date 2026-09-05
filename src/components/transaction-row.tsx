@@ -49,9 +49,11 @@ export function TransactionRow({
           </p>
         )}
       </span>
-      <span className={`shrink-0 font-semibold ${isInflow ? "text-brand-green" : "text-ink"}`}>
-        {isInflow ? "+" : "-"}${Math.abs(transaction.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-        {transaction.pending && <span className="ml-1 text-[10px] font-normal text-secondary/50">pending</span>}
+      <span className="shrink-0 text-right">
+        <p className={`font-semibold ${isInflow ? "text-brand-green" : "text-ink"}`}>
+          {isInflow ? "+" : "-"}${Math.abs(transaction.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </p>
+        {transaction.pending && <p className="text-[10px] font-normal text-secondary/50">pending</p>}
       </span>
     </li>
   );
