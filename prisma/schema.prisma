@@ -25,13 +25,16 @@ model User {
 
 /// One Plaid Item = one bank-login connection, which can expose several accounts.
 model PlaidItem {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   userId          String
-  itemId          String   @unique
+  itemId          String    @unique
   accessToken     String
   institutionId   String?
   institutionName String?
-  createdAt       DateTime @default(now())
+  createdAt       DateTime  @default(now())
+  /// Plaid's transactionsSync cursor, so re-syncing only fetches what changed since last time.
+  syncCursor      String?
+  lastSyncedAt    DateTime?
 
   user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   accounts FinancialAccount[]
