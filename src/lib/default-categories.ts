@@ -126,20 +126,10 @@ export const DEFAULT_CATEGORY_TREE: CategorySeed[] = [
     children: [{ name: "Family" }, { name: "Childcare" }, { name: "Pets" }, { name: "Charities" }, { name: "Gifts" }],
   },
   {
+    // No premade goal types — users add exactly the goals they want from the Goals section.
     name: "Goals",
     icon: "🌱",
-    children: [
-      { name: "Emergency Fund" },
-      { name: "Vacation" },
-      { name: "House" },
-      { name: "Car" },
-      { name: "Wedding" },
-      { name: "Debt Payoff" },
-      { name: "Savings Goal" },
-      { name: "Investment" },
-      { name: "Big Purchase" },
-      { name: "Custom Goal" },
-    ],
+    children: [],
   },
   {
     name: "Money In",

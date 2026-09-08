@@ -78,6 +78,10 @@ export function GoalList({ goals }: { goals: GoalRow[] }) {
     setSuggestions((prev) => ({ ...prev, [categoryId]: body.suggestion }));
   }
 
+  if (goals.length === 0) {
+    return <p className="text-sm text-secondary/60">No goals yet — add one below.</p>;
+  }
+
   return (
     <ul className="space-y-4">
       {goals.map((row) => {

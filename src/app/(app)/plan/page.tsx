@@ -4,6 +4,7 @@ import { CircularProgress } from "@/components/circular-progress";
 import { CategoryList } from "@/components/category-list";
 import { GoalList } from "@/components/goal-list";
 import { AddCategoryForm } from "@/components/add-category-form";
+import { AddGoalForm } from "@/components/add-goal-form";
 import { BudgetFeedback } from "@/components/budget-feedback";
 import { aggregate, flattenLeaves } from "@/lib/category-tree";
 import { INCOME_ROOT_CATEGORIES, GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
@@ -90,22 +91,36 @@ export default async function PlanPage() {
 
       <BudgetFeedback />
 
-      <div>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-secondary/70">
-            <span className="text-base leading-none">{goalsGroup?.icon ?? "🌱"}</span>
-            Goals
-          </h2>
-          {totalSaved > 0 && (
-            <span className="text-xs font-semibold text-brand-green">
-              ${totalSaved.toLocaleString(undefined, { maximumFractionDigits: 0 })} saved
-            </span>
-          )}
-        </div>
-        <div className="space-y-3 rounded-2xl bg-surface p-4 shadow-sm">
-          <GoalList goals={goalRows} />
-          {goalsGroup && <AddCategoryForm parentId={goalsGroup.id} label="Add subcategory" />}
-        </div>
+      <div className="rounded-2xl bg-surface shadow-sm">
+        <details className="group" open>
+          <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 [&::-webkit-details-marker]:hidden">
+            <span className="text-xl leading-none">{goalsGroup?.icon ?? "🌱"}</span>
+            <span className="flex-1 text-lg font-black">Goals</span>
+            {totalSaved > 0 && (
+              <span className="text-xs font-semibold text-brand-green">
+                ${totalSaved.toLocaleString(undefined, { maximumFractionDigits: 0 })} saved
+              </span>
+            )}
+            <svg
+              viewBox="0 0 20 20"
+              className="h-4 w-4 shrink-0 text-secondary/40 transition-transform group-open:rotate-180"
+              fill="currentColor"
+            >
+              <path
+                d="M5.5 7.5l4.5 4.5 4.5-4.5"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </summary>
+          <div className="space-y-3 border-t border-divider px-4 py-3">
+            <GoalList goals={goalRows} />
+            {goalsGroup && <AddGoalForm parentId={goalsGroup.id} />}
+          </div>
+        </details>
       </div>
 
       <div>
