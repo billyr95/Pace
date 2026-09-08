@@ -19,8 +19,7 @@ export function GoalsSummaryCard({ goals }: { goals: GoalRow[] }) {
 
       {active.length === 0 ? (
         <p className="mt-2 text-sm text-secondary/60">
-          No savings goals set yet — head to Plan &gt; Goals to set a target for Vacation, an Emergency Fund, and
-          more.
+          No savings goals yet — head to Plan &gt; Goals to add one, like a vacation fund or an emergency fund.
         </p>
       ) : (
         <ul className="mt-3 space-y-3">
