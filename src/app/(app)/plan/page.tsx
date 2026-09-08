@@ -4,6 +4,7 @@ import { CircularProgress } from "@/components/circular-progress";
 import { CategoryList } from "@/components/category-list";
 import { GoalList, type GoalRow } from "@/components/goal-list";
 import { AddCategoryForm } from "@/components/add-category-form";
+import { BudgetFeedback } from "@/components/budget-feedback";
 import { aggregate, flattenLeaves } from "@/lib/category-tree";
 import { INCOME_ROOT_CATEGORIES, GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
 
@@ -117,6 +118,8 @@ export default async function PlanPage() {
           sublabel={`of $${totalBudget.toLocaleString(undefined, { maximumFractionDigits: 0 })} proposed`}
         />
       </div>
+
+      <BudgetFeedback />
 
       <div>
         <h2 className="mb-3 text-sm font-semibold text-secondary/70">Categories</h2>
