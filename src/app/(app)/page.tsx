@@ -2,6 +2,7 @@ import { auth, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { buildBalanceHistory } from "@/lib/balance-history";
 import { detectRecurringBills } from "@/lib/recurring";
+import { remainingGoalContributionsThisMonth } from "@/lib/goals-data";
 import { GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
 import { NetWorthChart } from "@/components/net-worth-chart";
 import { ConnectBankButton } from "@/components/connect-bank-button";
@@ -22,7 +23,7 @@ export default async function HomePage() {
   const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [accounts, categories, yearTransactions, monthlySpend] = await Promise.all([
+  const [accounts, categories, yearTransactions, monthlySpend, remainingGoalPace] = await Promise.all([
     prisma.financialAccount.findMany({ where: { userId }, orderBy: { name: "asc" } }),
     prisma.category.findMany({ where: { userId } }),
     prisma.transaction.findMany({
@@ -33,6 +34,7 @@ export default async function HomePage() {
       where: { userId, date: { gte: monthStart }, amount: { gt: 0 } },
       _sum: { amount: true },
     }),
+    remainingGoalContributionsThisMonth(userId, now),
   ]);
 
   const totalBalance = accounts.reduce((sum, a) => sum + (a.currentBalance ?? 0), 0);
@@ -45,11 +47,15 @@ export default async function HomePage() {
   const goalsRootId = categories.find((c) => GOAL_ROOT_CATEGORIES.has(c.name))?.id;
   const goalCategoryIds = new Set(categories.filter((c) => c.parentId === goalsRootId).map((c) => c.id));
   const billCandidates = yearTransactions.filter((t) => !t.categoryId || !goalCategoryIds.has(t.categoryId));
-  const recurringBills = detectRecurringBills(billCandidates, now).slice(0, 5);
+  const allRecurringBills = detectRecurringBills(billCandidates, now);
+  const recurringBills = allRecurringBills.slice(0, 5);
 
   const spentThisMonth = monthlySpend._sum.amount ?? 0;
   const totalBudget = categories.reduce((sum, c) => sum + (c.monthlyLimit ?? 0), 0);
   const pctOfBudget = totalBudget > 0 ? Math.min(100, Math.round((spentThisMonth / totalBudget) * 100)) : 0;
+
+  const upcomingBillsTotal = allRecurringBills.reduce((sum, b) => sum + b.averageAmount, 0);
+  const safeToSpend = totalBalance - upcomingBillsTotal - remainingGoalPace;
 
   const hour = now.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -73,6 +79,20 @@ export default async function HomePage() {
           </button>
         </form>
       </div>
+
+      {accounts.length > 0 && (
+        <div className="rounded-2xl bg-brand-dark p-5 text-center text-brand-paper">
+          <p
+            className={`text-4xl font-black tracking-tight ${safeToSpend < 0 ? "text-red-400" : "text-brand-green"}`}
+          >
+            ${Math.round(safeToSpend).toLocaleString()}
+          </p>
+          <p className="mt-1 text-sm text-brand-paper/70">Safe to spend this month</p>
+          <p className="mt-2 text-[11px] text-brand-paper/40">
+            Balance minus upcoming bills and this month&rsquo;s savings goals
+          </p>
+        </div>
+      )}
 
       <div>
         <p className="text-sm text-secondary/70">Current balance</p>

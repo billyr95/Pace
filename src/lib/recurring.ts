@@ -1,6 +1,6 @@
 import { merchantKey } from "@/lib/merchant-key";
 
-export type RecurringBill = {
+export type RecurringItem = {
   key: string;
   displayName: string;
   averageAmount: number;
@@ -10,26 +10,29 @@ export type RecurringBill = {
   occurrences: number;
 };
 
+export type RecurringBill = RecurringItem;
+
 type TxLike = { name: string; merchantName: string | null; amount: number; date: Date };
 
 /**
- * Flags merchants billing on a roughly fixed amount + cadence (weekly to monthly) so upcoming
- * charges can surface before they hit, not just after. Deliberately conservative — amount and
- * spacing both have to be fairly consistent, and the pattern must still look "live" (the most
- * recent hit can't be more than ~2 cycles old) or it's probably a cancelled subscription.
+ * Flags merchants moving a roughly fixed amount on a fixed cadence (weekly to monthly).
+ * Deliberately conservative — amount and spacing both have to be fairly consistent, and the
+ * pattern must still look "live" (the most recent hit can't be more than ~2 cycles old) or
+ * it's probably cancelled/no longer active.
  */
-export function detectRecurringBills(transactions: TxLike[], now: Date): RecurringBill[] {
+function detectRecurring(transactions: TxLike[], now: Date, direction: "in" | "out"): RecurringItem[] {
   const groups = new Map<string, { displayName: string; entries: { amount: number; date: Date }[] }>();
   for (const t of transactions) {
-    if (t.amount <= 0) continue;
+    const isMatch = direction === "out" ? t.amount > 0 : t.amount < 0;
+    if (!isMatch) continue;
     const key = merchantKey(t);
     const displayName = (t.merchantName?.trim() || t.name.trim()).replace(/\s+/g, " ");
     const group = groups.get(key) ?? { displayName, entries: [] };
-    group.entries.push({ amount: t.amount, date: t.date });
+    group.entries.push({ amount: Math.abs(t.amount), date: t.date });
     groups.set(key, group);
   }
 
-  const bills: RecurringBill[] = [];
+  const items: RecurringItem[] = [];
 
   for (const [key, group] of groups) {
     if (group.entries.length < 3) continue;
@@ -53,7 +56,7 @@ export function detectRecurringBills(transactions: TxLike[], now: Date): Recurri
     const daysSinceLast = (now.getTime() - last.date.getTime()) / 86_400_000;
     if (daysSinceLast > avgInterval * 2) continue;
 
-    bills.push({
+    items.push({
       key,
       displayName: group.displayName,
       averageAmount: avgAmount,
@@ -64,5 +67,14 @@ export function detectRecurringBills(transactions: TxLike[], now: Date): Recurri
     });
   }
 
-  return bills.sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
+  return items.sort((a, b) => a.nextDueDate.getTime() - b.nextDueDate.getTime());
+}
+
+export function detectRecurringBills(transactions: TxLike[], now: Date): RecurringItem[] {
+  return detectRecurring(transactions, now, "out");
+}
+
+/** Same pattern-matching as detectRecurringBills, but for money coming in — paychecks, etc. */
+export function detectRecurringIncome(transactions: TxLike[], now: Date): RecurringItem[] {
+  return detectRecurring(transactions, now, "in");
 }

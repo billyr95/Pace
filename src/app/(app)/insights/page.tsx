@@ -5,10 +5,19 @@ import { INCOME_ROOT_CATEGORIES } from "@/lib/default-categories";
 import { topNWithOther, CATEGORICAL_PALETTE } from "@/lib/chart-palette";
 import { expectedMonthlyIncome, type PayFrequency } from "@/lib/income";
 import { DATE_RANGES, isDateRangeKey, type DateRangeKey } from "@/lib/date-range";
+import { detectRecurringIncome } from "@/lib/recurring";
+import { detectMoneyLeaks } from "@/lib/money-leaks";
+import { computeSpendingPersonality } from "@/lib/spending-personality";
 import { DateRangeSelect } from "@/components/date-range-select";
 import { SpendPieChart } from "@/components/spend-pie-chart";
 import { CategorySpendBars } from "@/components/spend-bars";
 import { IncomeSetupForm, type IncomeProfileData } from "@/components/income-setup-form";
+import { MoneyLeaksCard } from "@/components/money-leaks-card";
+import { SpendingPersonalityCard } from "@/components/spending-personality-card";
+import { MonthlyRecapCard } from "@/components/monthly-recap-card";
+import { IncomeSourcesCard } from "@/components/income-sources-card";
+import { TrendsForecastCard } from "@/components/trends-forecast-card";
+import { WhatIfCard } from "@/components/what-if-card";
 
 export default async function InsightsPage({
   searchParams,
@@ -111,6 +120,78 @@ export default async function InsightsPage({
   const monthsRemaining = 11 - now.getMonth();
   const projectedAnnual = ytdIncome + expectedThisMonth * monthsRemaining;
 
+  // --- Money leaks, spending personality, monthly recap, recurring income ---
+  const sixMonthsAgoStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const threeMonthsAgoStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+  const recapMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const recapMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
+  const oneYearAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+
+  const [allCategories, personalityTx, leakTx, recapTx, incomeCandidates] = await Promise.all([
+    prisma.category.findMany({ where: { userId }, select: { id: true, name: true, parentId: true } }),
+    prisma.transaction.findMany({
+      where: { userId, date: { gte: sixMonthsAgoStart }, amount: { gt: 0 } },
+      select: { amount: true, date: true, categoryId: true },
+    }),
+    prisma.transaction.findMany({
+      where: { userId, date: { gte: threeMonthsAgoStart }, amount: { gt: 0, lte: 20 } },
+      include: { category: { select: { name: true } } },
+    }),
+    prisma.transaction.findMany({
+      where: { userId, date: { gte: recapMonthStart, lt: recapMonthEnd } },
+      include: { category: { select: { name: true } } },
+    }),
+    prisma.transaction.findMany({
+      where: { userId, date: { gte: oneYearAgo }, amount: { lt: 0 } },
+      select: { amount: true, date: true, name: true, merchantName: true },
+    }),
+  ]);
+
+  const categoryById = new Map(allCategories.map((c) => [c.id, c]));
+  function topLevelName(categoryId: string | null): string | null {
+    let current = categoryId ? categoryById.get(categoryId) : undefined;
+    while (current?.parentId) {
+      current = categoryById.get(current.parentId);
+    }
+    return current?.name ?? null;
+  }
+
+  const monthKeys: string[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthKeys.push(`${d.getFullYear()}-${d.getMonth()}`);
+  }
+  const personality = computeSpendingPersonality(
+    personalityTx.map((t) => ({ amount: t.amount, date: t.date, categoryName: topLevelName(t.categoryId) })),
+    monthKeys,
+  );
+
+  const moneyLeaks = detectMoneyLeaks(
+    leakTx.map((t) => ({ amount: t.amount, categoryName: t.category?.name ?? null })),
+    3,
+  ).slice(0, 3);
+
+  const recapEarned = recapTx.filter((t) => t.amount < 0).reduce((sum, t) => sum - t.amount, 0);
+  const recapExpenseTx = recapTx.filter((t) => t.amount > 0);
+  const recapSpent = recapExpenseTx.reduce((sum, t) => sum + t.amount, 0);
+  // Fixed/essential costs (rent, utilities, loan payments) would dominate a raw category-total
+  // ranking every month — excluding them surfaces an actual discretionary "splurge" instead.
+  const SPLURGE_EXCLUDED_GROUPS = new Set(["Home", "Financial"]);
+  const recapByCategory = new Map<string, number>();
+  for (const t of recapExpenseTx) {
+    if (!t.category?.name) continue;
+    if (SPLURGE_EXCLUDED_GROUPS.has(topLevelName(t.categoryId) ?? "")) continue;
+    recapByCategory.set(t.category.name, (recapByCategory.get(t.category.name) ?? 0) + t.amount);
+  }
+  const recapBiggestSplurge = Array.from(recapByCategory.entries())
+    .map(([name, amount]) => ({ name, amount }))
+    .sort((a, b) => b.amount - a.amount)[0];
+  const recapMonthLabel = recapMonthStart.toLocaleDateString(undefined, { month: "long" });
+  const recapSaved = recapEarned - recapSpent;
+  const recapSavingsRate = recapEarned > 0 ? Math.round((recapSaved / recapEarned) * 100) : 0;
+
+  const recurringIncome = detectRecurringIncome(incomeCandidates, now);
+
   const fmt = (n: number) => `$${Math.round(n).toLocaleString()}`;
   const rangePhrase = DATE_RANGES[range].phrase(now);
 
@@ -192,6 +273,25 @@ export default async function InsightsPage({
           <IncomeSetupForm profile={profileData} />
         </div>
       </div>
+
+      <IncomeSourcesCard sources={recurringIncome} />
+
+      <MonthlyRecapCard
+        monthLabel={recapMonthLabel}
+        earned={recapEarned}
+        spent={recapSpent}
+        saved={recapSaved}
+        savingsRatePct={recapSavingsRate}
+        biggestSplurge={recapBiggestSplurge}
+      />
+
+      <MoneyLeaksCard leaks={moneyLeaks} />
+
+      <SpendingPersonalityCard personality={personality} />
+
+      <TrendsForecastCard />
+
+      <WhatIfCard />
     </div>
   );
 }
