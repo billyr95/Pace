@@ -58,11 +58,17 @@ export default async function PlanPage() {
     isGoals: GOAL_ROOT_CATEGORIES.has(g.name),
   }));
 
+  // Goals still roll into the overall budget totals below (they're money leaving your account
+  // like any other category) but get their own section in the UI instead of sitting in the
+  // generic Categories list.
   const expenseGroups = groups.filter((g) => !g.isIncome);
   const totalBudget = expenseGroups.reduce((sum, g) => sum + g.totalBudget, 0);
   const totalSpent = expenseGroups.reduce((sum, g) => sum + g.totalSpent, 0);
   const left = totalBudget - totalSpent;
   const pct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+
+  const goalsGroup = groups.find((g) => g.isGoals);
+  const categoryGroups = groups.filter((g) => !g.isGoals);
 
   return (
     <div className="space-y-6 px-5 pt-6">
@@ -85,12 +91,30 @@ export default async function PlanPage() {
       <BudgetFeedback />
 
       <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-secondary/70">
+            <span className="text-base leading-none">{goalsGroup?.icon ?? "🌱"}</span>
+            Goals
+          </h2>
+          {totalSaved > 0 && (
+            <span className="text-xs font-semibold text-brand-green">
+              ${totalSaved.toLocaleString(undefined, { maximumFractionDigits: 0 })} saved
+            </span>
+          )}
+        </div>
+        <div className="space-y-3 rounded-2xl bg-surface p-4 shadow-sm">
+          <GoalList goals={goalRows} />
+          {goalsGroup && <AddCategoryForm parentId={goalsGroup.id} label="Add subcategory" />}
+        </div>
+      </div>
+
+      <div>
         <h2 className="mb-3 text-sm font-semibold text-secondary/70">Categories</h2>
-        {groups.length === 0 ? (
+        {categoryGroups.length === 0 ? (
           <p className="text-sm text-secondary/60">No categories yet.</p>
         ) : (
           <ul className="space-y-2">
-            {groups.map((group) => {
+            {categoryGroups.map((group) => {
               const leaves = flattenLeaves(group, group.isIncome).map((leaf) => {
                 const priorAmount = priorMonthByCategory.get(leaf.id) ?? 0;
                 const rolloverAmount =
@@ -111,12 +135,6 @@ export default async function PlanPage() {
                         group.totalReceived > 0 && (
                           <span className="text-xs font-semibold text-brand-green">
                             +${group.totalReceived.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                          </span>
-                        )
-                      ) : group.isGoals ? (
-                        totalSaved > 0 && (
-                          <span className="text-xs font-semibold text-brand-green">
-                            ${totalSaved.toLocaleString(undefined, { maximumFractionDigits: 0 })} saved
                           </span>
                         )
                       ) : group.totalBudget > 0 ? (
@@ -147,11 +165,7 @@ export default async function PlanPage() {
                       </svg>
                     </summary>
                     <div className="space-y-3 border-t border-divider px-4 py-3">
-                      {group.isGoals ? (
-                        <GoalList goals={goalRows} />
-                      ) : (
-                        <CategoryList categories={leaves} isIncome={group.isIncome} priorMonthLabel={priorMonthLabel} />
-                      )}
+                      <CategoryList categories={leaves} isIncome={group.isIncome} priorMonthLabel={priorMonthLabel} />
                       <AddCategoryForm parentId={group.id} label="Add subcategory" />
                     </div>
                   </details>
