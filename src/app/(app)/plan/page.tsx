@@ -2,11 +2,12 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { CircularProgress } from "@/components/circular-progress";
 import { CategoryList } from "@/components/category-list";
-import { GoalList, type GoalRow } from "@/components/goal-list";
+import { GoalList } from "@/components/goal-list";
 import { AddCategoryForm } from "@/components/add-category-form";
 import { BudgetFeedback } from "@/components/budget-feedback";
 import { aggregate, flattenLeaves } from "@/lib/category-tree";
 import { INCOME_ROOT_CATEGORIES, GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
+import { getGoalRows } from "@/lib/goals-data";
 
 export default async function PlanPage() {
   const session = await auth();
@@ -15,7 +16,6 @@ export default async function PlanPage() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const priorMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
   const txSelect = { where: { date: { gte: monthStart } }, select: { amount: true } } as const;
 
   const [rawGroups, priorMonthTx] = await Promise.all([
@@ -49,44 +49,7 @@ export default async function PlanPage() {
   }
   const priorMonthLabel = priorMonthStart.toLocaleDateString(undefined, { month: "long" });
 
-  const goalsRawGroup = rawGroups.find((g) => GOAL_ROOT_CATEGORIES.has(g.name));
-  const goalCategoryIds = goalsRawGroup?.children.map((c) => c.id) ?? [];
-
-  const [goalRecords, allTimeContributions, recentContributions] = await Promise.all([
-    prisma.goal.findMany({ where: { userId, categoryId: { in: goalCategoryIds } } }),
-    goalCategoryIds.length > 0
-      ? prisma.transaction.groupBy({
-          by: ["categoryId"],
-          where: { userId, categoryId: { in: goalCategoryIds }, amount: { gt: 0 } },
-          _sum: { amount: true },
-        })
-      : Promise.resolve([]),
-    goalCategoryIds.length > 0
-      ? prisma.transaction.groupBy({
-          by: ["categoryId"],
-          where: { userId, categoryId: { in: goalCategoryIds }, amount: { gt: 0 }, date: { gte: threeMonthsAgo } },
-          _sum: { amount: true },
-        })
-      : Promise.resolve([]),
-  ]);
-
-  const goalById = new Map(goalRecords.map((g) => [g.categoryId, g]));
-  const allTimeByCategory = new Map(allTimeContributions.map((r) => [r.categoryId, r._sum.amount ?? 0]));
-  const recentByCategory = new Map(recentContributions.map((r) => [r.categoryId, r._sum.amount ?? 0]));
-
-  const goalRows: GoalRow[] = (goalsRawGroup?.children ?? []).map((c) => {
-    const g = goalById.get(c.id);
-    return {
-      categoryId: c.id,
-      name: c.name,
-      icon: c.icon || "🌱",
-      goalId: g?.id ?? null,
-      targetAmount: g?.targetAmount ?? null,
-      targetDate: g?.targetDate ? g.targetDate.toISOString() : null,
-      totalContributed: allTimeByCategory.get(c.id) ?? 0,
-      monthlyRate: (recentByCategory.get(c.id) ?? 0) / 3,
-    };
-  });
+  const goalRows = await getGoalRows(userId, now);
   const totalSaved = goalRows.reduce((sum, g) => sum + g.totalContributed, 0);
 
   const groups = rawGroups.map((g) => ({

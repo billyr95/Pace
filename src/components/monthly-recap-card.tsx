@@ -19,7 +19,7 @@ export function MonthlyRecapCard({
   const fmt = (n: number) => `$${Math.round(n).toLocaleString()}`;
 
   return (
-    <div className="rounded-2xl bg-brand-dark p-4 text-brand-paper">
+    <div className="rounded-2xl border border-white/10 bg-brand-dark p-4 text-brand-paper">
       <div className="flex items-center gap-1.5">
         <PartyPopper size={15} className="text-brand-green" />
         <h2 className="text-sm font-semibold text-brand-paper/70">{monthLabel} recap</h2>

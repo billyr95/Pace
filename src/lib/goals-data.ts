@@ -1,5 +1,51 @@
 import { prisma } from "@/lib/prisma";
 import { GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
+import type { GoalRow } from "@/components/goal-list";
+
+/** Every goal category the user has, with progress/pace data — used on both Plan and Home. */
+export async function getGoalRows(userId: string, now: Date): Promise<GoalRow[]> {
+  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+
+  const goalsRoot = await prisma.category.findFirst({
+    where: { userId, parentId: null, name: { in: Array.from(GOAL_ROOT_CATEGORIES) } },
+    include: { children: { orderBy: { name: "asc" } } },
+  });
+  const goalCategories = goalsRoot?.children ?? [];
+  const goalCategoryIds = goalCategories.map((c) => c.id);
+  if (goalCategoryIds.length === 0) return [];
+
+  const [goalRecords, allTimeContributions, recentContributions] = await Promise.all([
+    prisma.goal.findMany({ where: { userId, categoryId: { in: goalCategoryIds } } }),
+    prisma.transaction.groupBy({
+      by: ["categoryId"],
+      where: { userId, categoryId: { in: goalCategoryIds }, amount: { gt: 0 } },
+      _sum: { amount: true },
+    }),
+    prisma.transaction.groupBy({
+      by: ["categoryId"],
+      where: { userId, categoryId: { in: goalCategoryIds }, amount: { gt: 0 }, date: { gte: threeMonthsAgo } },
+      _sum: { amount: true },
+    }),
+  ]);
+
+  const goalById = new Map(goalRecords.map((g) => [g.categoryId, g]));
+  const allTimeByCategory = new Map(allTimeContributions.map((r) => [r.categoryId, r._sum.amount ?? 0]));
+  const recentByCategory = new Map(recentContributions.map((r) => [r.categoryId, r._sum.amount ?? 0]));
+
+  return goalCategories.map((c) => {
+    const g = goalById.get(c.id);
+    return {
+      categoryId: c.id,
+      name: c.name,
+      icon: c.icon || "🌱",
+      goalId: g?.id ?? null,
+      targetAmount: g?.targetAmount ?? null,
+      targetDate: g?.targetDate ? g.targetDate.toISOString() : null,
+      totalContributed: allTimeByCategory.get(c.id) ?? 0,
+      monthlyRate: (recentByCategory.get(c.id) ?? 0) / 3,
+    };
+  });
+}
 
 /**
  * How much more a user should ideally put toward their savings goals before the month is out —

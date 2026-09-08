@@ -2,10 +2,11 @@ import { auth, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { buildBalanceHistory } from "@/lib/balance-history";
 import { detectRecurringBills } from "@/lib/recurring";
-import { remainingGoalContributionsThisMonth } from "@/lib/goals-data";
+import { remainingGoalContributionsThisMonth, getGoalRows } from "@/lib/goals-data";
 import { GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
 import { NetWorthChart } from "@/components/net-worth-chart";
 import { ConnectBankButton } from "@/components/connect-bank-button";
+import { GoalsSummaryCard } from "@/components/goals-summary-card";
 import { LogoMark } from "@/components/logo";
 import { Building2, PiggyBank, Repeat, Wallet } from "lucide-react";
 
@@ -23,7 +24,7 @@ export default async function HomePage() {
   const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [accounts, categories, yearTransactions, monthlySpend, remainingGoalPace] = await Promise.all([
+  const [accounts, categories, yearTransactions, monthlySpend, remainingGoalPace, goalRows] = await Promise.all([
     prisma.financialAccount.findMany({ where: { userId }, orderBy: { name: "asc" } }),
     prisma.category.findMany({ where: { userId } }),
     prisma.transaction.findMany({
@@ -35,6 +36,7 @@ export default async function HomePage() {
       _sum: { amount: true },
     }),
     remainingGoalContributionsThisMonth(userId, now),
+    getGoalRows(userId, now),
   ]);
 
   const totalBalance = accounts.reduce((sum, a) => sum + (a.currentBalance ?? 0), 0);
@@ -81,7 +83,7 @@ export default async function HomePage() {
       </div>
 
       {accounts.length > 0 && (
-        <div className="rounded-2xl bg-brand-dark p-5 text-center text-brand-paper">
+        <div className="rounded-2xl border border-white/10 bg-brand-dark p-5 text-center text-brand-paper">
           <p
             className={`text-4xl font-black tracking-tight ${safeToSpend < 0 ? "text-red-400" : "text-brand-green"}`}
           >
@@ -93,6 +95,8 @@ export default async function HomePage() {
           </p>
         </div>
       )}
+
+      <GoalsSummaryCard goals={goalRows} />
 
       <div>
         <p className="text-sm text-secondary/70">Current balance</p>
@@ -123,7 +127,7 @@ export default async function HomePage() {
       )}
 
       {totalBudget > 0 && (
-        <div className="rounded-2xl bg-brand-dark p-4 text-brand-paper">
+        <div className="rounded-2xl border border-white/10 bg-brand-dark p-4 text-brand-paper">
           <p className="text-sm text-brand-paper/70">Pace this month</p>
           <div className="mt-2 flex items-center justify-between">
             <p className="text-sm">
