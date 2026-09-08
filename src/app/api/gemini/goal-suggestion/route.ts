@@ -7,7 +7,11 @@ import { INCOME_ROOT_CATEGORIES, GOAL_ROOT_CATEGORIES } from "@/lib/default-cate
 import { expectedMonthlyIncome, type PayFrequency } from "@/lib/income";
 import { generateGeminiText } from "@/lib/gemini";
 
-const bodySchema = z.object({ categoryId: z.string() });
+const bodySchema = z.object({
+  categoryId: z.string(),
+  history: z.array(z.object({ role: z.enum(["user", "assistant"]), text: z.string() })).max(20).optional(),
+  message: z.string().max(500).optional(),
+});
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -19,7 +23,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
   const userId = session.user.id;
-  const { categoryId } = parsed.data;
+  const { categoryId, history = [], message } = parsed.data;
 
   const category = await prisma.category.findUnique({ where: { id: categoryId } });
   if (!category || category.userId !== userId) {
@@ -73,20 +77,42 @@ export async function POST(request: Request) {
   const contributedTotal = contributed._sum.amount ?? 0;
   const targetAmount = goal?.targetAmount;
   const targetDate = goal?.targetDate;
+  const remaining = targetAmount ? Math.max(0, targetAmount - contributedTotal) : null;
 
-  const prompt = `You are a friendly, practical financial coach inside a budgeting app called Pace. The user has a savings goal called "${category.name}"${targetAmount ? ` with a target of $${targetAmount.toFixed(0)}` : ""}${targetDate ? `, aiming to reach it by ${targetDate.toLocaleDateString(undefined, { month: "long", year: "numeric" })}` : ""}. So far they've put $${contributedTotal.toFixed(0)} toward it.
+  // Computed here, not left to the model — date/division arithmetic is exactly the kind of
+  // thing an LLM will confidently get wrong, so it's handed the real number as a fact instead
+  // of being asked to derive it.
+  let requiredMonthlyPace: number | null = null;
+  if (targetAmount && targetDate && remaining !== null) {
+    const monthsRemaining = Math.max(
+      1,
+      (targetDate.getFullYear() - now.getFullYear()) * 12 + (targetDate.getMonth() - now.getMonth()),
+    );
+    requiredMonthlyPace = remaining / monthsRemaining;
+  }
 
-Their expected monthly income is about $${expectedThisMonth.toFixed(0)}. Their overall monthly expense budget is $${totalBudget.toFixed(0)}, and they've spent $${totalSpent.toFixed(0)} so far this month.
+  const context = `You are a friendly, practical financial coach inside a budgeting app called Pace, helping with one specific savings goal. Stay grounded in the facts below — never invent or recompute a dollar figure or date; if you state a monthly savings amount, it must be the exact "required monthly pace" figure given here (do not derive your own from the target and date). Keep replies short (2-4 sentences), plain language, no markdown.
 
-${roomToSpare.length > 0 ? `Categories with unspent budget room this month:\n${roomToSpare.join("\n")}` : "No categories currently have meaningful unspent budget room."}
+Goal: "${category.name}"${targetAmount ? `, target $${targetAmount.toFixed(0)}` : " (no target amount set)"}${targetDate ? `, target date ${targetDate.toLocaleDateString(undefined, { month: "long", year: "numeric" })}` : ""}.
+Contributed so far: $${contributedTotal.toFixed(0)}.
+${remaining !== null ? `Remaining to target: $${remaining.toFixed(0)}.` : ""}
+${requiredMonthlyPace !== null ? `Required monthly pace to hit the target date: $${requiredMonthlyPace.toFixed(0)}/month.` : ""}
 
-In 2-4 sentences (no markdown), give a concrete, encouraging suggestion for how they could realistically save toward this goal — reference specific categories or a specific monthly amount where possible. If they're already on a good pace, say so plainly instead of inventing a problem.`;
+Expected monthly income: $${expectedThisMonth.toFixed(0)}. Overall monthly expense budget: $${totalBudget.toFixed(0)}, spent so far this month: $${totalSpent.toFixed(0)}.
+${roomToSpare.length > 0 ? `Categories with unspent budget room this month:\n${roomToSpare.join("\n")}` : "No categories currently have meaningful unspent budget room."}`;
+
+  const transcript = history.map((m) => `${m.role === "user" ? "User" : "You"}: ${m.text}`).join("\n");
+  const finalTurn = message
+    ? `User: ${message}`
+    : `User: How can I save for this goal? (Give your opening suggestion.)`;
+
+  const prompt = [context, transcript, finalTurn].filter(Boolean).join("\n\n") + "\n\nYou:";
 
   try {
-    const suggestion = await generateGeminiText(prompt);
-    return NextResponse.json({ suggestion });
+    const reply = await generateGeminiText(prompt);
+    return NextResponse.json({ reply });
   } catch (err) {
     console.error("gemini goal-suggestion failed:", err);
-    return NextResponse.json({ error: "Couldn't get a suggestion right now — try again in a moment." }, { status: 502 });
+    return NextResponse.json({ error: "Couldn't get a response right now — try again in a moment." }, { status: 502 });
   }
 }
