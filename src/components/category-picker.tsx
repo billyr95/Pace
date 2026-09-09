@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Circle, Search } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Circle } from "lucide-react";
 import { INCOME_ROOT_CATEGORIES, GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 export type CategoryNode = {
   id: string;
@@ -67,22 +69,20 @@ function OptionNode({
   showIcon?: boolean;
 }) {
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => onSelect(node.id)}
-        style={{ paddingLeft: `${0.75 + depth * 0.9}rem` }}
-        className={`flex w-full items-center gap-1.5 py-1.5 pr-3 text-left text-sm hover:bg-muted/40 ${
-          value === node.id ? "bg-brand-green/10 font-semibold text-ink" : "text-secondary"
-        }`}
+    <>
+      <CommandItem
+        value={node.id}
+        onSelect={() => onSelect(node.id)}
+        style={{ paddingLeft: `${0.5 + depth * 0.9}rem` }}
+        className={value === node.id ? "bg-brand-green/10 font-semibold text-ink" : "text-secondary"}
       >
         {showIcon && node.icon && <span className="text-sm leading-none">{node.icon}</span>}
         {node.name}
-      </button>
+      </CommandItem>
       {node.children.map((child) => (
         <OptionNode key={child.id} node={child} depth={depth + 1} value={value} onSelect={onSelect} />
       ))}
-    </div>
+    </>
   );
 }
 
@@ -95,7 +95,6 @@ function DropdownPanel({
   value: string | null;
   select: (id: string | null) => void;
 }) {
-  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"spent" | "income" | "goals">(() => {
     const containingRoot = value ? findRootContaining(categories, value) : null;
@@ -103,10 +102,6 @@ function DropdownPanel({
     if (containingRoot && GOAL_ROOT_CATEGORIES.has(containingRoot.name)) return "goals";
     return "spent";
   });
-
-  useEffect(() => {
-    searchRef.current?.focus();
-  }, []);
 
   const hasIncomeGroups = categories.some((g) => INCOME_ROOT_CATEGORIES.has(g.name));
   const hasGoalGroups = categories.some((g) => GOAL_ROOT_CATEGORIES.has(g.name));
@@ -136,52 +131,38 @@ function DropdownPanel({
   };
 
   return (
-    <div className="absolute left-0 z-20 mt-1 w-72 overflow-hidden rounded-xl border border-divider bg-surface shadow-lg">
-      <div className="flex items-center gap-1.5 border-b border-divider px-2.5 py-2">
-        <Search size={14} className="text-secondary/40" />
-        <input
-          ref={searchRef}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search categories…"
-          className="w-full text-sm outline-none placeholder:text-secondary/40"
-        />
-      </div>
-
-      <div className="max-h-72 overflow-y-auto py-1">
+    <Command shouldFilter={false} className="w-72">
+      <CommandInput autoFocus value={search} onValueChange={setSearch} placeholder="Search categories…" />
+      <CommandList className="max-h-72">
         {searchResults ? (
           searchResults.length > 0 ? (
             searchResults.map((option) => (
-              <button
+              <CommandItem
                 key={option.id}
-                type="button"
-                onClick={() => select(option.id)}
-                className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-muted/40 ${
-                  value === option.id ? "bg-brand-green/10 font-semibold text-ink" : "text-secondary"
-                }`}
+                value={option.id}
+                onSelect={() => select(option.id)}
+                className={value === option.id ? "bg-brand-green/10 font-semibold text-ink" : "text-secondary"}
               >
                 <span className="text-sm leading-none">{option.icon}</span>
                 <span className="flex-1 truncate">{option.name}</span>
                 {option.breadcrumb && (
                   <span className="shrink-0 text-[11px] text-secondary/40">{option.breadcrumb}</span>
                 )}
-              </button>
+              </CommandItem>
             ))
           ) : (
-            <p className="px-3 py-4 text-center text-sm text-secondary/50">No matching categories</p>
+            <CommandEmpty>No matching categories</CommandEmpty>
           )
         ) : (
           <>
-            <button
-              type="button"
-              onClick={() => select(null)}
-              className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-muted/40 ${
-                !value ? "font-semibold text-ink" : "text-secondary/70"
-              }`}
+            <CommandItem
+              value="uncategorized"
+              onSelect={() => select(null)}
+              className={!value ? "font-semibold text-ink" : "text-secondary/70"}
             >
               <Circle size={12} className="text-secondary/40" />
               Uncategorized
-            </button>
+            </CommandItem>
 
             {hasTabs && (
               <div className="mt-1 flex gap-1 border-y border-divider bg-muted/60 px-2 py-1.5">
@@ -206,21 +187,25 @@ function DropdownPanel({
                 // selectable item rather than an inert group header.
                 <OptionNode key={group.id} node={group} depth={0} value={value} showIcon onSelect={select} />
               ) : (
-                <div key={group.id} className="mt-1 first:mt-0">
-                  <div className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold tracking-wide text-secondary/50 uppercase">
-                    <span className="text-sm leading-none normal-case">{group.icon}</span>
-                    {group.name}
-                  </div>
+                <CommandGroup
+                  key={group.id}
+                  heading={
+                    <span className="flex items-center gap-1.5 normal-case">
+                      <span className="text-sm leading-none">{group.icon}</span>
+                      {group.name}
+                    </span>
+                  }
+                >
                   {group.children.map((child) => (
-                    <OptionNode key={child.id} node={child} depth={1} value={value} onSelect={select} />
+                    <OptionNode key={child.id} node={child} depth={0} value={value} onSelect={select} />
                   ))}
-                </div>
+                </CommandGroup>
               ),
             )}
           </>
         )}
-      </div>
-    </div>
+      </CommandList>
+    </Command>
   );
 }
 
@@ -234,25 +219,6 @@ export function CategoryPicker({
   onChange: (categoryId: string | null) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onPointerDown(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, []);
-
   const selected = findSelected(categories, value);
 
   function select(id: string | null) {
@@ -261,12 +227,8 @@ export function CategoryPicker({
   }
 
   return (
-    <div ref={containerRef} className="relative inline-block text-left">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-full border border-divider bg-muted px-2.5 py-1 text-xs font-medium text-secondary transition hover:border-brand-green/50"
-      >
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger className="flex items-center gap-1.5 rounded-full border border-divider bg-muted px-2.5 py-1 text-xs font-medium text-secondary transition hover:border-brand-green/50">
         {selected ? (
           <>
             <span className="text-sm leading-none">{selected.icon}</span>
@@ -279,9 +241,10 @@ export function CategoryPicker({
           </>
         )}
         <ChevronDown size={13} className={`text-secondary/50 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-
-      {open && <DropdownPanel categories={categories} value={value} select={select} />}
-    </div>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72 p-0">
+        <DropdownPanel categories={categories} value={value} select={select} />
+      </PopoverContent>
+    </Popover>
   );
 }

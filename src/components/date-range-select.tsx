@@ -2,29 +2,32 @@
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { DATE_RANGES, type DateRangeKey } from "@/lib/date-range";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function DateRangeSelect({ value, now }: { value: DateRangeKey; now: Date }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  function onChange(range: string) {
+  function onChange(range: string | null) {
+    if (!range) return;
     const params = new URLSearchParams(searchParams.toString());
     params.set("range", range);
     router.push(`${pathname}?${params.toString()}`);
   }
 
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="rounded-full border border-divider bg-surface px-3 py-1.5 text-xs font-medium text-secondary outline-none focus:border-brand-green"
-    >
-      {Object.entries(DATE_RANGES).map(([key, { label }]) => (
-        <option key={key} value={key}>
-          {label(now)}
-        </option>
-      ))}
-    </select>
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger size="sm" className="rounded-full text-xs font-medium text-secondary">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {Object.entries(DATE_RANGES).map(([key, { label }]) => (
+          <SelectItem key={key} value={key}>
+            {label(now)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
