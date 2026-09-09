@@ -1,4 +1,5 @@
 import { PartyPopper } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function MonthlyRecapCard({
   monthLabel,
@@ -19,29 +20,31 @@ export function MonthlyRecapCard({
   const fmt = (n: number) => `$${Math.round(n).toLocaleString()}`;
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-brand-dark p-4 text-brand-paper">
-      <div className="flex items-center gap-1.5">
-        <PartyPopper size={15} className="text-brand-green" />
-        <h2 className="text-sm font-semibold text-brand-paper/70">{monthLabel} recap</h2>
-      </div>
-      <ul className="mt-3 space-y-1.5 text-sm">
-        <li>
-          You earned <span className="font-semibold">{fmt(earned)}</span>
-        </li>
-        <li>
-          You spent <span className="font-semibold">{fmt(spent)}</span>
-        </li>
-        <li>
-          You saved <span className="font-semibold text-brand-green">{fmt(saved)}</span>
-          {earned > 0 && <> — that&rsquo;s a {savingsRatePct}% savings rate.</>}
-        </li>
-        {biggestSplurge && (
-          <li className="pt-1 text-brand-paper/70">
-            Your biggest splurge was <span className="font-semibold text-brand-paper">{biggestSplurge.name}</span> —{" "}
-            {fmt(biggestSplurge.amount)}.
+    <Card className="border border-white/10 bg-brand-dark text-brand-paper ring-0">
+      <CardContent>
+        <div className="flex items-center gap-1.5">
+          <PartyPopper size={15} className="text-brand-green" />
+          <h2 className="text-sm font-semibold text-brand-paper/70">{monthLabel} recap</h2>
+        </div>
+        <ul className="mt-3 space-y-1.5 text-sm">
+          <li>
+            You earned <span className="font-semibold">{fmt(earned)}</span>
           </li>
-        )}
-      </ul>
-    </div>
+          <li>
+            You spent <span className="font-semibold">{fmt(spent)}</span>
+          </li>
+          <li>
+            You saved <span className="font-semibold text-brand-green">{fmt(saved)}</span>
+            {earned > 0 && <> — that&rsquo;s a {savingsRatePct}% savings rate.</>}
+          </li>
+          {biggestSplurge && (
+            <li className="pt-1 text-brand-paper/70">
+              Your biggest splurge was <span className="font-semibold text-brand-paper">{biggestSplurge.name}</span>{" "}
+              — {fmt(biggestSplurge.amount)}.
+            </li>
+          )}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }

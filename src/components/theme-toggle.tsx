@@ -1,6 +1,8 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useTheme } from "next-themes";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type ThemeChoice = "system" | "light" | "dark";
 
@@ -10,50 +12,37 @@ const OPTIONS: { value: ThemeChoice; label: string }[] = [
   { value: "dark", label: "Dark" },
 ];
 
-const listeners = new Set<() => void>();
-
-function subscribe(onChange: () => void) {
-  listeners.add(onChange);
-  return () => listeners.delete(onChange);
-}
-
-function getSnapshot(): ThemeChoice {
-  const stored = window.localStorage.getItem("pace-theme");
-  return stored === "light" || stored === "dark" ? stored : "system";
-}
-
-function getServerSnapshot(): ThemeChoice {
-  return "system";
-}
-
-function applyTheme(choice: ThemeChoice) {
-  if (choice === "system") {
-    document.documentElement.removeAttribute("data-theme");
-    localStorage.removeItem("pace-theme");
-  } else {
-    document.documentElement.setAttribute("data-theme", choice);
-    localStorage.setItem("pace-theme", choice);
-  }
-  listeners.forEach((l) => l());
+// next-themes doesn't know the resolved theme until after mount — this reports "not
+// mounted yet" during SSR/first paint so we render a stable "system" selection then,
+// avoiding a hydration mismatch flash (no useEffect-driven setState needed).
+function useHasMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 }
 
 export function ThemeToggle() {
-  const choice = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const { theme, setTheme } = useTheme();
+  const mounted = useHasMounted();
+  const choice: ThemeChoice = mounted && (theme === "light" || theme === "dark") ? theme : "system";
 
   return (
-    <div className="flex items-center gap-1 rounded-full bg-muted p-1">
+    <ToggleGroup
+      value={[choice]}
+      onValueChange={(values) => setTheme((values[0] as ThemeChoice) ?? "system")}
+      className="rounded-full bg-muted p-1"
+    >
       {OPTIONS.map((opt) => (
-        <button
+        <ToggleGroupItem
           key={opt.value}
-          type="button"
-          onClick={() => applyTheme(opt.value)}
-          className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-            choice === opt.value ? "bg-surface text-ink shadow-sm" : "text-secondary/70"
-          }`}
+          value={opt.value}
+          className="rounded-full px-3 py-1.5 text-xs font-semibold text-secondary/70 data-[state=on]:bg-surface data-[state=on]:text-ink data-[state=on]:shadow-sm"
         >
           {opt.label}
-        </button>
+        </ToggleGroupItem>
       ))}
-    </div>
+    </ToggleGroup>
   );
 }

@@ -57,7 +57,13 @@
   --border: var(--divider);
   --input: var(--divider);
   --ring: var(--color-brand-green);
-  --radius: 1rem;
+  /* shadcn's generated radius-sm/md/lg/xl/2xl/3xl/4xl scale below is all derived from
+     this one value, which OVERRIDES Tailwind's stock rounded-* sizes app-wide — including
+     in the ~35 not-yet-migrated files still using a bare `rounded-2xl` for their cards.
+     Solved so --radius-2xl lands exactly on Tailwind's stock 1rem (1rem / 1.8), so those
+     untouched cards don't visually shift mid-migration; --radius-lg (what shadcn's own
+     Card/Button/Input use) ends up a hair under stock too, an imperceptible ~0.05rem off. */
+  --radius: calc(1rem / 1.8);
 
   /* Seeded from CATEGORICAL_PALETTE (src/lib/chart-palette.ts) — same fixed hue
      order (colorblind-safe adjacency), extended past shadcn's default 5 slots to
