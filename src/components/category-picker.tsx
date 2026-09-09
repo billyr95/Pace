@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Circle, Search } from "lucide-react";
-import { INCOME_ROOT_CATEGORIES } from "@/lib/default-categories";
+import { INCOME_ROOT_CATEGORIES, GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
 
 export type CategoryNode = {
   id: string;
@@ -97,9 +97,11 @@ function DropdownPanel({
 }) {
   const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState<"spent" | "income">(() => {
+  const [tab, setTab] = useState<"spent" | "income" | "goals">(() => {
     const containingRoot = value ? findRootContaining(categories, value) : null;
-    return containingRoot && INCOME_ROOT_CATEGORIES.has(containingRoot.name) ? "income" : "spent";
+    if (containingRoot && INCOME_ROOT_CATEGORIES.has(containingRoot.name)) return "income";
+    if (containingRoot && GOAL_ROOT_CATEGORIES.has(containingRoot.name)) return "goals";
+    return "spent";
   });
 
   useEffect(() => {
@@ -107,6 +109,8 @@ function DropdownPanel({
   }, []);
 
   const hasIncomeGroups = categories.some((g) => INCOME_ROOT_CATEGORIES.has(g.name));
+  const hasGoalGroups = categories.some((g) => GOAL_ROOT_CATEGORIES.has(g.name));
+  const hasTabs = hasIncomeGroups || hasGoalGroups;
 
   const query = search.trim().toLowerCase();
   const searchResults = query
@@ -115,9 +119,21 @@ function DropdownPanel({
         .sort((a, b) => a.name.localeCompare(b.name))
     : null;
 
-  const visibleGroups = hasIncomeGroups
-    ? categories.filter((g) => INCOME_ROOT_CATEGORIES.has(g.name) === (tab === "income"))
-    : categories;
+  function bucketOf(name: string): "income" | "goals" | "spent" {
+    if (INCOME_ROOT_CATEGORIES.has(name)) return "income";
+    if (GOAL_ROOT_CATEGORIES.has(name)) return "goals";
+    return "spent";
+  }
+
+  const visibleGroups = hasTabs ? categories.filter((g) => bucketOf(g.name) === tab) : categories;
+  const tabs = (["spent", "income", "goals"] as const).filter(
+    (t) => t === "spent" || (t === "income" && hasIncomeGroups) || (t === "goals" && hasGoalGroups),
+  );
+  const tabLabel: Record<"spent" | "income" | "goals", string> = {
+    spent: "Spent",
+    income: "Money In",
+    goals: "Goals",
+  };
 
   return (
     <div className="absolute left-0 z-20 mt-1 w-72 overflow-hidden rounded-xl border border-divider bg-surface shadow-lg">
@@ -167,9 +183,9 @@ function DropdownPanel({
               Uncategorized
             </button>
 
-            {hasIncomeGroups && (
+            {hasTabs && (
               <div className="mt-1 flex gap-1 border-y border-divider bg-muted/60 px-2 py-1.5">
-                {(["spent", "income"] as const).map((t) => (
+                {tabs.map((t) => (
                   <button
                     key={t}
                     type="button"
@@ -178,7 +194,7 @@ function DropdownPanel({
                       tab === t ? "bg-brand-dark text-brand-paper" : "text-secondary/60 hover:bg-muted"
                     }`}
                   >
-                    {t === "spent" ? "Spent" : "Money In"}
+                    {tabLabel[t]}
                   </button>
                 ))}
               </div>
