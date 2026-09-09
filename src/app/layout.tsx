@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { satoshi } from "@/lib/fonts";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 const SITE_URL = "https://www.pace-budget.xyz";
 const TITLE = "pace — your money. your pace.";
@@ -26,24 +30,15 @@ export const metadata: Metadata = {
   },
 };
 
-const THEME_INIT_SCRIPT = `
-(function () {
-  try {
-    var stored = localStorage.getItem("pace-theme");
-    if (stored === "light" || stored === "dark") {
-      document.documentElement.setAttribute("data-theme", stored);
-    }
-  } catch (e) {}
-})();
-`;
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${satoshi.variable} h-full antialiased`}>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-      </head>
-      <body className="min-h-full flex flex-col bg-page text-ink">{children}</body>
+    <html lang="en" className={cn("h-full", "antialiased", satoshi.variable)} suppressHydrationWarning>
+      <body className="min-h-full flex flex-col bg-page text-ink">
+        <ThemeProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+          <Toaster />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
