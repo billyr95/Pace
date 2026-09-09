@@ -30,7 +30,7 @@ export function CircularProgress({
           cx={SIZE / 2}
           cy={SIZE / 2}
           r={RADIUS}
-          stroke="#47D67A"
+          style={{ stroke: "var(--color-brand-green)" }}
           strokeWidth={STROKE}
           strokeLinecap="round"
           fill="none"

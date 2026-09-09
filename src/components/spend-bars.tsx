@@ -1,7 +1,8 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import type { ColoredAmount } from "@/lib/chart-palette";
+import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
 
 export type SpendBarGroup = { id: string; name: string; icon: string; total: number; segments: ColoredAmount[] };
 
@@ -18,37 +19,40 @@ export function CategorySpendBars({ groups }: { groups: SpendBarGroup[] }) {
   );
 }
 
+function segmentRadius(index: number, count: number): number | [number, number, number, number] {
+  if (count === 1) return 999;
+  if (index === 0) return [999, 0, 0, 999];
+  if (index === count - 1) return [0, 999, 999, 0];
+  return 0;
+}
+
+function BarTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { name?: string; value?: number; color?: string }[];
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="space-y-1 rounded-lg bg-brand-dark px-2 py-1.5 text-xs text-brand-paper">
+      {payload.map((item) => (
+        <div key={item.name} className="flex items-center gap-1.5 whitespace-nowrap">
+          <span className="h-2 w-2 shrink-0 rounded-sm" style={{ backgroundColor: item.color }} />
+          {item.name}: ${Number(item.value ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function SpendBarRow({ group }: { group: SpendBarGroup }) {
-  const [hovered, setHovered] = useState<number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-  const [tooltipLeft, setTooltipLeft] = useState<number | null>(null);
-
-  const positioned = group.segments.map((seg, i) => {
-    const pct = (seg.amount / group.total) * 100;
-    const priorAmount = group.segments.slice(0, i).reduce((sum, s) => sum + s.amount, 0);
-    const start = (priorAmount / group.total) * 100;
-    return { ...seg, pct, start, i };
-  });
-  const active = hovered !== null ? positioned[hovered] : null;
-
-  // Measured after the tooltip renders (so its real width is known) and clamped to the bar's
-  // own bounds, since a purely percentage-based position doesn't account for tooltip width and
-  // can push it past the screen edge for segments near either end of the bar.
-  useLayoutEffect(() => {
-    if (!active || !containerRef.current || !tooltipRef.current) {
-      setTooltipLeft(null);
-      return;
-    }
-    const containerWidth = containerRef.current.offsetWidth;
-    const tooltipWidth = tooltipRef.current.offsetWidth;
-    const desiredCenter = ((active.start + active.pct / 2) / 100) * containerWidth;
-    const halfTooltip = tooltipWidth / 2;
-    const margin = 4;
-    const min = Math.min(halfTooltip + margin, containerWidth / 2);
-    const max = Math.max(containerWidth - halfTooltip - margin, containerWidth / 2);
-    setTooltipLeft(Math.min(max, Math.max(min, desiredCenter)));
-  }, [active]);
+  const row: Record<string, number | string> = { name: group.name };
+  const config: ChartConfig = {};
+  for (const seg of group.segments) {
+    row[seg.name] = seg.amount;
+    config[seg.name] = { label: seg.name, color: seg.color };
+  }
 
   return (
     <div>
@@ -61,31 +65,23 @@ function SpendBarRow({ group }: { group: SpendBarGroup }) {
           ${group.total.toLocaleString(undefined, { maximumFractionDigits: 0 })}
         </span>
       </div>
-      <div className="relative" ref={containerRef}>
-        {active && (
-          <div
-            ref={tooltipRef}
-            className="pointer-events-none absolute bottom-full z-10 mb-1.5 -translate-x-1/2 rounded-lg bg-brand-dark px-2 py-1 text-xs whitespace-nowrap text-brand-paper"
-            style={{ left: tooltipLeft ?? 0, visibility: tooltipLeft === null ? "hidden" : "visible" }}
-          >
-            {active.name}: ${active.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-          </div>
-        )}
-        <div className="flex h-5 w-full gap-[2px] overflow-hidden rounded-full">
-          {positioned.map((seg) => (
-            <div
+      <ChartContainer config={config} className="aspect-auto h-5 w-full">
+        <BarChart data={[row]} layout="vertical" margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+          <XAxis type="number" hide domain={[0, group.total]} />
+          <YAxis type="category" dataKey="name" hide />
+          <ChartTooltip cursor={false} content={<BarTooltip />} />
+          {group.segments.map((seg, i) => (
+            <Bar
               key={seg.name}
-              style={{ width: `${seg.pct}%`, backgroundColor: seg.color }}
-              className="h-full cursor-pointer transition-opacity"
-              tabIndex={0}
-              onMouseEnter={() => setHovered(seg.i)}
-              onMouseLeave={() => setHovered(null)}
-              onFocus={() => setHovered(seg.i)}
-              onBlur={() => setHovered(null)}
+              dataKey={seg.name}
+              stackId="stack"
+              fill={seg.color}
+              radius={segmentRadius(i, group.segments.length)}
+              isAnimationActive={false}
             />
           ))}
-        </div>
-      </div>
+        </BarChart>
+      </ChartContainer>
     </div>
   );
 }

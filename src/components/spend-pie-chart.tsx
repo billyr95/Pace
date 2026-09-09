@@ -1,20 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Cell, Pie, PieChart } from "recharts";
 import type { ColoredAmount } from "@/lib/chart-palette";
-
-const CX = 90;
-const CY = 90;
-const R = 80;
-
-function arcPath(startAngle: number, endAngle: number) {
-  const x1 = CX + R * Math.cos(startAngle);
-  const y1 = CY + R * Math.sin(startAngle);
-  const x2 = CX + R * Math.cos(endAngle);
-  const y2 = CY + R * Math.sin(endAngle);
-  const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
-  return `M${CX},${CY} L${x1.toFixed(2)},${y1.toFixed(2)} A${R},${R} 0 ${largeArc} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`;
-}
+import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 
 export function SpendPieChart({
   slices,
@@ -37,14 +26,8 @@ export function SpendPieChart({
     );
   }
 
-  const wedges = slices.map((slice, i) => {
-    const priorAmount = slices.slice(0, i).reduce((sum, s) => sum + s.amount, 0);
-    const start = (priorAmount / total) * 2 * Math.PI - Math.PI / 2;
-    const end = ((priorAmount + slice.amount) / total) * 2 * Math.PI - Math.PI / 2;
-    return { ...slice, i, d: arcPath(start, end) };
-  });
-
   const active = hovered !== null ? slices[hovered] : null;
+  const config: ChartConfig = Object.fromEntries(slices.map((s) => [s.name, { label: s.name, color: s.color }]));
 
   return (
     <div>
@@ -65,24 +48,25 @@ export function SpendPieChart({
         )}
       </p>
       <div className="flex items-center gap-4">
-        <svg viewBox="0 0 180 180" className="h-36 w-36 shrink-0">
-          {wedges.map((w) => (
-            <path
-              key={w.name}
-              d={w.d}
-              fill={w.color}
-              style={{ stroke: "var(--surface)" }}
+        <ChartContainer config={config} className="aspect-square h-36 w-36 shrink-0">
+          <PieChart>
+            <Pie
+              data={slices}
+              dataKey="amount"
+              nameKey="name"
+              outerRadius="90%"
+              stroke="var(--surface)"
               strokeWidth={1.5}
-              opacity={hovered === null || hovered === w.i ? 1 : 0.35}
-              className="cursor-pointer transition-opacity"
-              onMouseEnter={() => setHovered(w.i)}
+              isAnimationActive={false}
+              onMouseEnter={(_, index) => setHovered(index)}
               onMouseLeave={() => setHovered(null)}
-              onFocus={() => setHovered(w.i)}
-              onBlur={() => setHovered(null)}
-              tabIndex={0}
-            />
-          ))}
-        </svg>
+            >
+              {slices.map((slice, i) => (
+                <Cell key={slice.name} fill={slice.color} opacity={hovered === null || hovered === i ? 1 : 0.35} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ChartContainer>
         <div className="min-w-0 flex-1 space-y-1.5">
           {slices.map((slice, i) => (
             <div
