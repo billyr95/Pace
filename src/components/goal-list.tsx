@@ -3,6 +3,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GoalChat } from "@/components/goal-chat";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export type GoalRow = {
   categoryId: string;
@@ -55,6 +70,7 @@ export function GoalList({ goals }: { goals: GoalRow[] }) {
 
   async function remove(goalId: string) {
     await fetch(`/api/goals/${goalId}`, { method: "DELETE" });
+    setEditingId(null);
     router.refresh();
   }
 
@@ -74,74 +90,96 @@ export function GoalList({ goals }: { goals: GoalRow[] }) {
             <div className="mb-1 flex items-center gap-2">
               <span className="text-sm leading-none">{row.icon}</span>
               <span className="flex-1 text-sm font-medium">{row.name}</span>
-              {editingId !== row.categoryId &&
-                (hasGoal ? (
-                  <button
-                    onClick={() => startEdit(row)}
-                    className="text-xs font-medium text-secondary/60 underline"
-                  >
-                    Edit goal
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => startEdit(row)}
-                    className="text-xs font-medium text-secondary/60 underline"
-                  >
-                    Set a goal
-                  </button>
-                ))}
+              {editingId !== row.categoryId && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => startEdit(row)}
+                  className="text-xs font-medium text-secondary/60 underline"
+                >
+                  {hasGoal ? "Edit goal" : "Set a goal"}
+                </Button>
+              )}
             </div>
 
             {editingId === row.categoryId ? (
               <div className="flex flex-wrap items-center gap-2 rounded-xl bg-muted p-2.5">
-                <label className="flex items-center gap-1 text-sm">
-                  <span className="text-xs text-secondary/50">Target $</span>
-                  <input
+                <div className="flex items-center gap-1">
+                  <Label htmlFor={`goal-amount-${row.categoryId}`} className="text-xs text-secondary/50">
+                    Target $
+                  </Label>
+                  <Input
+                    id={`goal-amount-${row.categoryId}`}
                     autoFocus
                     type="number"
                     min={1}
                     value={amountDraft}
                     onChange={(e) => setAmountDraft(e.target.value)}
-                    className="w-24 rounded border border-divider bg-surface px-1.5 py-0.5"
+                    className="h-7 w-24 px-1.5"
                   />
-                </label>
-                <label className="flex items-center gap-1 text-sm">
-                  <span className="text-xs text-secondary/50">By</span>
-                  <input
+                </div>
+                <div className="flex items-center gap-1">
+                  <Label htmlFor={`goal-date-${row.categoryId}`} className="text-xs text-secondary/50">
+                    By
+                  </Label>
+                  <Input
+                    id={`goal-date-${row.categoryId}`}
                     type="date"
                     value={dateDraft}
                     onChange={(e) => setDateDraft(e.target.value)}
-                    className="rounded border border-divider bg-surface px-1.5 py-0.5 text-xs"
+                    className="h-7 px-1.5 text-xs"
                   />
-                </label>
-                <button
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => save(row.categoryId)}
                   disabled={saving}
                   className="font-semibold text-brand-green"
                 >
                   Save
-                </button>
+                </Button>
                 {row.goalId && (
-                  <button
-                    onClick={() => {
-                      remove(row.goalId!);
-                      setEditingId(null);
-                    }}
-                    className="text-xs text-secondary/50 underline"
-                  >
-                    Remove goal
-                  </button>
+                  <AlertDialog>
+                    <AlertDialogTrigger className="text-xs text-secondary/50 underline">
+                      Remove goal
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove this goal?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This deletes the savings target for &ldquo;{row.name}&rdquo;. Past transactions stay
+                          categorized here, but progress and pace tracking stop.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          variant="destructive"
+                          onClick={() => remove(row.goalId!)}
+                        >
+                          Remove goal
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
-                <button onClick={() => setEditingId(null)} className="text-xs text-secondary/50">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditingId(null)}
+                  className="text-xs text-secondary/50"
+                >
                   Cancel
-                </button>
+                </Button>
               </div>
             ) : (
               hasGoal && (
                 <>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-brand-green" style={{ width: `${pct}%` }} />
-                  </div>
+                  <Progress value={pct} />
                   <p className="mt-1 text-xs text-secondary/60">
                     ${row.totalContributed.toLocaleString(undefined, { maximumFractionDigits: 0 })} of $
                     {row.targetAmount!.toLocaleString(undefined, { maximumFractionDigits: 0 })}

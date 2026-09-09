@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { LeafDisplayRow } from "@/lib/category-tree";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 
 export function CategoryList({
   categories,
@@ -76,29 +81,35 @@ export function CategoryList({
                   )
                 ) : editingId === category.id ? (
                   <span className="flex items-center gap-1 text-sm">
-                    <label htmlFor={`budget-${category.id}`} className="text-xs text-secondary/50">
+                    <Label htmlFor={`budget-${category.id}`} className="text-xs text-secondary/50">
                       Proposed
-                    </label>
+                    </Label>
                     $
-                    <input
+                    <Input
                       id={`budget-${category.id}`}
                       autoFocus
                       type="number"
                       min={0}
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
-                      className="w-16 rounded border border-divider px-1 py-0.5"
+                      className="h-7 w-16 px-1.5"
                     />
-                    <button
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => save(category.id)}
                       disabled={saving}
-                      className="ml-1 font-semibold text-brand-green"
+                      className="text-brand-green"
                     >
                       Save
-                    </button>
+                    </Button>
                   </span>
                 ) : (
-                  <button
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
                       setEditingId(category.id);
                       setDraft(hasLimit ? String(limit) : "");
@@ -106,18 +117,13 @@ export function CategoryList({
                     className="text-xs font-medium text-secondary/60 underline"
                   >
                     {hasLimit ? "Edit proposed" : "Set proposed budget"}
-                  </button>
+                  </Button>
                 )}
               </div>
               {!isIncome &&
                 (hasLimit ? (
                   <>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={`h-full rounded-full ${over ? "bg-red-400" : "bg-brand-green"}`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
+                    <Progress value={pct} className={over ? "[&_[data-slot=progress-indicator]]:bg-destructive" : ""} />
                     <p className="mt-1 text-xs text-secondary/60">
                       ${category.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} actual / $
                       {effectiveLimit.toLocaleString(undefined, { maximumFractionDigits: 0 })} proposed
@@ -125,15 +131,14 @@ export function CategoryList({
                         <> (includes ${rolloverAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} rolled over from {priorMonthLabel})</>
                       )}
                     </p>
-                    <label className="mt-1 flex items-center gap-1.5 text-[11px] text-secondary/50">
-                      <input
-                        type="checkbox"
+                    <Label className="mt-1 flex items-center gap-1.5 text-[11px] font-normal text-secondary/50">
+                      <Switch
+                        size="sm"
                         checked={category.rolloverEnabled}
-                        onChange={(e) => toggleRollover(category.id, e.target.checked)}
-                        className="h-3 w-3 accent-brand-green"
+                        onCheckedChange={(checked) => toggleRollover(category.id, checked)}
                       />
                       Roll over unused budget to next month
-                    </label>
+                    </Label>
                   </>
                 ) : (
                   category.amount > 0 && (

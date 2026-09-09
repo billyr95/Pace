@@ -1,128 +1,133 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Plus } from "lucide-react";
 import { EmojiPickerButton } from "@/components/emoji-picker-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+
+const schema = z.object({
+  name: z.string().trim().min(1, "Name your goal"),
+  amount: z.string().refine((v) => Number.isFinite(Number(v)) && Number(v) > 0, "Enter an amount greater than 0"),
+  date: z.string().optional(),
+});
+type FormValues = z.infer<typeof schema>;
 
 export function AddGoalForm({ parentId }: { parentId: string }) {
   const router = useRouter();
+  const formId = useId();
   const [open, setOpen] = useState(false);
   const [emoji, setEmoji] = useState("🌱");
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: "", amount: "", date: "" },
+  });
 
-  function reset() {
+  function closeAndReset() {
     setOpen(false);
     setEmoji("🌱");
-    setName("");
-    setAmount("");
-    setDate("");
-    setError(null);
+    setSubmitError(null);
+    reset();
   }
 
-  async function save() {
-    const trimmedName = name.trim();
-    const targetAmount = Number(amount);
-    if (!trimmedName || !Number.isFinite(targetAmount) || targetAmount <= 0) return;
-
-    setSaving(true);
-    setError(null);
+  async function onSubmit(values: FormValues) {
+    setSubmitError(null);
 
     const categoryRes = await fetch("/api/categories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: trimmedName, icon: emoji, parentId }),
+      body: JSON.stringify({ name: values.name, icon: emoji, parentId }),
     });
     const categoryBody = await categoryRes.json().catch(() => ({}));
     if (!categoryRes.ok) {
-      setSaving(false);
-      setError(categoryBody.error ?? "Couldn't create that goal");
+      setSubmitError(categoryBody.error ?? "Couldn't create that goal");
       return;
     }
 
     const goalRes = await fetch("/api/goals", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ categoryId: categoryBody.category.id, targetAmount, targetDate: date || null }),
+      body: JSON.stringify({
+        categoryId: categoryBody.category.id,
+        targetAmount: Number(values.amount),
+        targetDate: values.date || null,
+      }),
     });
-    setSaving(false);
     if (!goalRes.ok) {
       const goalBody = await goalRes.json().catch(() => ({}));
-      setError(goalBody.error ?? "Couldn't set that goal's target");
+      setSubmitError(goalBody.error ?? "Couldn't set that goal's target");
       return;
     }
 
-    reset();
+    closeAndReset();
     router.refresh();
   }
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-divider py-2.5 text-sm font-medium text-secondary/60"
-      >
+  return (
+    <Sheet open={open} onOpenChange={(next) => (next ? setOpen(true) : closeAndReset())}>
+      <SheetTrigger className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-divider py-2.5 text-sm font-medium text-secondary/60">
         <Plus size={15} />
         Add a goal
-      </button>
-    );
-  }
+      </SheetTrigger>
+      <SheetContent side="bottom">
+        <SheetHeader>
+          <SheetTitle>Add a goal</SheetTitle>
+        </SheetHeader>
+        <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-2 px-4">
+          <div className="flex items-center gap-2">
+            <EmojiPickerButton value={emoji} onChange={setEmoji} />
+            <div className="flex-1">
+              <Label htmlFor={`${formId}-name`} className="sr-only">
+                What are you saving for?
+              </Label>
+              <Input
+                id={`${formId}-name`}
+                autoFocus
+                placeholder="What are you saving for?"
+                {...register("name")}
+              />
+            </div>
+          </div>
+          {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
 
-  return (
-    <div className="space-y-2 rounded-2xl bg-muted p-3">
-      <div className="flex items-center gap-2">
-        <EmojiPickerButton value={emoji} onChange={setEmoji} />
-        <input
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="What are you saving for?"
-          className="w-full rounded-lg border border-divider bg-surface px-3 py-2 text-sm outline-none focus:border-brand-green"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <label className="flex flex-1 items-center gap-1 text-sm">
-          <span className="text-xs text-secondary/50">Target $</span>
-          <input
-            type="number"
-            min={1}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") save();
-            }}
-            className="w-full rounded-lg border border-divider bg-surface px-2 py-1.5 text-sm outline-none focus:border-brand-green"
-          />
-        </label>
-        <label className="flex items-center gap-1 text-sm">
-          <span className="text-xs text-secondary/50">By</span>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="rounded-lg border border-divider bg-surface px-2 py-1.5 text-xs outline-none focus:border-brand-green"
-          />
-        </label>
-      </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={save}
-          disabled={saving || !name.trim() || !amount}
-          className="rounded-full bg-brand-green px-4 py-1.5 text-xs font-semibold text-brand-dark disabled:opacity-50"
-        >
-          {saving ? "Saving…" : "Save"}
-        </button>
-        <button type="button" onClick={reset} className="text-xs font-medium text-secondary/60">
-          Cancel
-        </button>
-      </div>
-    </div>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 space-y-1">
+              <Label htmlFor={`${formId}-amount`} className="text-xs text-secondary/50">
+                Target $
+              </Label>
+              <Input id={`${formId}-amount`} type="number" min={1} {...register("amount")} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor={`${formId}-date`} className="text-xs text-secondary/50">
+                By
+              </Label>
+              <Input id={`${formId}-date`} type="date" {...register("date")} />
+            </div>
+          </div>
+          {errors.amount && <p className="text-xs text-destructive">{errors.amount.message}</p>}
+          {submitError && <p className="text-xs text-destructive">{submitError}</p>}
+        </form>
+        <SheetFooter className="flex-row">
+          <Button type="submit" form={formId} disabled={isSubmitting} className="flex-1">
+            {isSubmitting ? "Saving…" : "Save"}
+          </Button>
+          <Button type="button" variant="ghost" onClick={closeAndReset} className="text-secondary/60">
+            Cancel
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

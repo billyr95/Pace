@@ -1,87 +1,90 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Plus } from "lucide-react";
 import { EmojiPickerButton } from "@/components/emoji-picker-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+
+const schema = z.object({
+  name: z.string().trim().min(1, "Category name is required"),
+});
+type FormValues = z.infer<typeof schema>;
 
 export function AddCategoryForm({ parentId, label }: { parentId: string | null; label: string }) {
   const router = useRouter();
+  const formId = useId();
   const [open, setOpen] = useState(false);
   const [emoji, setEmoji] = useState("🏷️");
-  const [name, setName] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { name: "" } });
 
-  function reset() {
+  function closeAndReset() {
     setOpen(false);
     setEmoji("🏷️");
-    setName("");
-    setError(null);
+    setSubmitError(null);
+    reset();
   }
 
-  async function save() {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    setSaving(true);
-    setError(null);
+  async function onSubmit(values: FormValues) {
+    setSubmitError(null);
     const res = await fetch("/api/categories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: trimmed, icon: emoji, parentId }),
+      body: JSON.stringify({ name: values.name, icon: emoji, parentId }),
     });
-    setSaving(false);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "Couldn't create category");
+      setSubmitError(body.error ?? "Couldn't create category");
       return;
     }
-    reset();
+    closeAndReset();
     router.refresh();
   }
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-divider py-2.5 text-sm font-medium text-secondary/60"
-      >
+  return (
+    <Sheet open={open} onOpenChange={(next) => (next ? setOpen(true) : closeAndReset())}>
+      <SheetTrigger className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-divider py-2.5 text-sm font-medium text-secondary/60">
         <Plus size={15} />
         {label}
-      </button>
-    );
-  }
-
-  return (
-    <div className="space-y-2 rounded-2xl bg-surface p-3 shadow-sm">
-      <div className="flex items-center gap-2">
-        <EmojiPickerButton value={emoji} onChange={setEmoji} />
-        <input
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") save();
-          }}
-          placeholder="Category name"
-          className="w-full rounded-lg border border-divider bg-muted px-3 py-2 text-sm outline-none focus:border-brand-green"
-        />
-      </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={save}
-          disabled={saving || !name.trim()}
-          className="rounded-full bg-brand-green px-4 py-1.5 text-xs font-semibold text-brand-dark disabled:opacity-50"
-        >
-          Save
-        </button>
-        <button type="button" onClick={reset} className="text-xs font-medium text-secondary/60">
-          Cancel
-        </button>
-      </div>
-    </div>
+      </SheetTrigger>
+      <SheetContent side="bottom">
+        <SheetHeader>
+          <SheetTitle>{label}</SheetTitle>
+        </SheetHeader>
+        <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-2 px-4">
+          <div className="flex items-center gap-2">
+            <EmojiPickerButton value={emoji} onChange={setEmoji} />
+            <div className="flex-1">
+              <Label htmlFor={`${formId}-name`} className="sr-only">
+                Category name
+              </Label>
+              <Input id={`${formId}-name`} autoFocus placeholder="Category name" {...register("name")} />
+            </div>
+          </div>
+          {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+          {submitError && <p className="text-xs text-destructive">{submitError}</p>}
+        </form>
+        <SheetFooter className="flex-row">
+          <Button type="submit" form={formId} disabled={isSubmitting} className="flex-1">
+            Save
+          </Button>
+          <Button type="button" variant="ghost" onClick={closeAndReset} className="text-secondary/60">
+            Cancel
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { toast } from "sonner";
 import { CategoryPicker, type CategoryNode } from "@/components/category-picker";
 
 export type TransactionRowData = {
@@ -21,7 +21,6 @@ export function TransactionRow({
   categories: CategoryNode[];
   onCategorized: (categoryId: string | null, autoAppliedIds: string[]) => void;
 }) {
-  const [autoAppliedCount, setAutoAppliedCount] = useState(0);
   const isInflow = transaction.amount < 0;
 
   async function onChange(categoryId: string | null) {
@@ -32,7 +31,11 @@ export function TransactionRow({
     });
     const body = await res.json().catch(() => ({}));
     const autoAppliedIds: string[] = body.autoAppliedIds ?? [];
-    setAutoAppliedCount(autoAppliedIds.length);
+    if (autoAppliedIds.length > 0) {
+      toast.success(
+        `Also applied to ${autoAppliedIds.length} other matching transaction${autoAppliedIds.length === 1 ? "" : "s"}`,
+      );
+    }
     onCategorized(categoryId, autoAppliedIds);
   }
 
@@ -43,11 +46,6 @@ export function TransactionRow({
         <div className="mt-1">
           <CategoryPicker categories={categories} value={transaction.categoryId} onChange={onChange} />
         </div>
-        {autoAppliedCount > 0 && (
-          <p className="mt-1 text-[11px] text-brand-green">
-            Also applied to {autoAppliedCount} other matching transaction{autoAppliedCount === 1 ? "" : "s"}
-          </p>
-        )}
       </span>
       <span className="shrink-0 text-right">
         <p className={`font-semibold ${isInflow ? "text-brand-green" : "text-ink"}`}>

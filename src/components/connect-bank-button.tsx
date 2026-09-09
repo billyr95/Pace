@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Landmark } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function ConnectBankButton({ className = "" }: { className?: string }) {
   const router = useRouter();
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/plaid/create-link-token", { method: "POST" })
@@ -18,7 +19,7 @@ export function ConnectBankButton({ className = "" }: { className?: string }) {
         if (!res.ok) throw new Error(data.error ?? "Could not reach Plaid");
         setLinkToken(data.linkToken ?? null);
       })
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
   }, []);
 
   const onSuccess = useCallback(
@@ -40,17 +41,14 @@ export function ConnectBankButton({ className = "" }: { className?: string }) {
   const { open, ready } = usePlaidLink({ token: linkToken ?? "", onSuccess });
 
   return (
-    <div className={className}>
-      <button
-        type="button"
-        onClick={() => open()}
-        disabled={!ready || !linkToken || loading}
-        className="flex w-full items-center justify-center gap-2 rounded-full bg-brand-dark px-5 py-3 font-semibold text-brand-paper transition hover:opacity-90 disabled:opacity-50"
-      >
-        <Landmark size={18} />
-        {loading ? "Connecting…" : "Connect a bank account"}
-      </button>
-      {error && <p className="mt-2 text-center text-xs text-red-500">{error}</p>}
-    </div>
+    <Button
+      type="button"
+      onClick={() => open()}
+      disabled={!ready || !linkToken || loading}
+      className={`w-full gap-2 bg-brand-dark py-3 text-brand-paper hover:bg-brand-dark/90 ${className}`}
+    >
+      <Landmark size={18} />
+      {loading ? "Connecting…" : "Connect a bank account"}
+    </Button>
   );
 }
