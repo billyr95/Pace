@@ -81,7 +81,7 @@ export function AddGoalForm({ parentId }: { parentId: string }) {
         <Plus size={15} />
         Add a goal
       </SheetTrigger>
-      <SheetContent side="bottom">
+      <SheetContent side="top">
         <SheetHeader>
           <SheetTitle>Add a goal</SheetTitle>
         </SheetHeader>

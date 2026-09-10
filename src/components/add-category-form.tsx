@@ -59,7 +59,7 @@ export function AddCategoryForm({ parentId, label }: { parentId: string | null; 
         <Plus size={15} />
         {label}
       </SheetTrigger>
-      <SheetContent side="bottom">
+      <SheetContent side="top">
         <SheetHeader>
           <SheetTitle>{label}</SheetTitle>
         </SheetHeader>
