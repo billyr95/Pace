@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { satoshi } from "@/lib/fonts";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,16 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     images: ["/brand/pace-logocard.png"],
   },
+};
+
+// interactiveWidget: "resizes-content" makes the layout viewport actually shrink when the
+// on-screen keyboard opens, instead of just overlaying it — without this, fixed-positioned
+// UI anchored to the bottom of the screen (Sheet content, in particular) ends up rendered
+// behind the keyboard on iOS/Android rather than pushed up above it.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

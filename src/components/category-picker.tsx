@@ -140,9 +140,11 @@ function DropdownPanel({
   };
 
   return (
-    <Command shouldFilter={false} className="w-full">
-      <CommandInput autoFocus value={search} onValueChange={setSearch} placeholder="Search categories…" />
-      <CommandList className="max-h-[60vh]">
+    <Command shouldFilter={false} className="h-full min-h-0 w-full flex-1">
+      {/* No autoFocus — opening the keyboard immediately eats most of the sheet's height
+          before the user has even seen the list; let them tap in to search if they want it. */}
+      <CommandInput value={search} onValueChange={setSearch} placeholder="Search categories…" />
+      <CommandList className="max-h-none flex-1">
         {searchResults ? (
           searchResults.length > 0 ? (
             searchResults.map((option) => (
@@ -251,7 +253,7 @@ export function CategoryPicker({
         )}
         <ChevronDown size={13} className={`text-secondary transition-transform ${open ? "rotate-180" : ""}`} />
       </SheetTrigger>
-      <SheetContent side="bottom" className="mx-auto max-w-md gap-0 p-0">
+      <SheetContent side="bottom" className="mx-auto flex h-dvh max-w-md flex-col gap-0 p-0">
         <SheetHeader className="sr-only">
           <SheetTitle>Choose a category</SheetTitle>
         </SheetHeader>

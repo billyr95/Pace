@@ -6,7 +6,7 @@ import { useAsyncInsight } from "@/hooks/use-async-insight";
 import { AiLoading } from "@/components/ai-loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 type WhatIfResult = {
   label: string;
@@ -43,16 +43,27 @@ export function WhatIfCard() {
         <p className="mt-1 mb-3 text-sm text-secondary">
           Ask about a change to your spending and see the impact on your savings.
         </p>
-        <div className="flex items-center gap-2">
-          <Input
+        <div className="space-y-2">
+          <Textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") submit();
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submit();
+              }
             }}
             placeholder="What if I move to a $2,000 apartment?"
+            rows={2}
+            className="text-sm"
           />
-          <Button type="button" onClick={submit} disabled={loading || !question.trim()} size="sm">
+          <Button
+            type="button"
+            onClick={submit}
+            disabled={loading || !question.trim()}
+            size="sm"
+            className="w-full"
+          >
             Ask
           </Button>
         </div>
