@@ -253,7 +253,11 @@ export function CategoryPicker({
         )}
         <ChevronDown size={13} className={`text-secondary transition-transform ${open ? "rotate-180" : ""}`} />
       </SheetTrigger>
-      <SheetContent side="top" className="mx-auto flex max-h-[75vh] max-w-md flex-col gap-0 p-0">
+      <SheetContent
+        side="top"
+        className="mx-auto flex max-h-[75vh] max-w-md flex-col gap-0 p-0"
+        closeButtonClassName="absolute top-6 right-4"
+      >
         <SheetHeader className="sr-only">
           <SheetTitle>Choose a category</SheetTitle>
         </SheetHeader>
