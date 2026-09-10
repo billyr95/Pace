@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, Circle } from "lucide-react";
 import { INCOME_ROOT_CATEGORIES, GOAL_ROOT_CATEGORIES } from "@/lib/default-categories";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 export type CategoryNode = {
@@ -68,13 +68,22 @@ function OptionNode({
   onSelect: (id: string) => void;
   showIcon?: boolean;
 }) {
+  const isSelected = value === node.id;
+  const isParent = node.children.length > 0;
+
   return (
     <>
       <CommandItem
         value={node.id}
         onSelect={() => onSelect(node.id)}
         style={{ paddingLeft: `${0.5 + depth * 0.9}rem` }}
-        className={value === node.id ? "bg-brand-green/10 font-semibold text-ink" : "text-secondary"}
+        className={
+          isSelected
+            ? "bg-brand-green/10 font-semibold text-ink"
+            : isParent
+              ? "font-medium text-ink/80"
+              : "text-secondary"
+        }
       >
         {showIcon && node.icon && <span className="text-sm leading-none">{node.icon}</span>}
         {node.name}
@@ -131,9 +140,9 @@ function DropdownPanel({
   };
 
   return (
-    <Command shouldFilter={false} className="w-72">
+    <Command shouldFilter={false} className="w-full">
       <CommandInput autoFocus value={search} onValueChange={setSearch} placeholder="Search categories…" />
-      <CommandList className="max-h-72">
+      <CommandList className="max-h-[60vh]">
         {searchResults ? (
           searchResults.length > 0 ? (
             searchResults.map((option) => (
@@ -190,8 +199,8 @@ function DropdownPanel({
                 <CommandGroup
                   key={group.id}
                   heading={
-                    <span className="flex items-center gap-1.5 normal-case">
-                      <span className="text-sm leading-none">{group.icon}</span>
+                    <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-secondary/50 uppercase">
+                      <span className="text-sm leading-none normal-case">{group.icon}</span>
                       {group.name}
                     </span>
                   }
@@ -227,8 +236,8 @@ export function CategoryPicker({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className="flex items-center gap-1.5 rounded-full border border-divider bg-muted px-2.5 py-1 text-xs font-medium text-secondary transition hover:border-brand-green/50">
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger className="flex items-center gap-1.5 rounded-full border border-divider bg-muted px-2.5 py-1 text-xs font-medium text-secondary transition hover:border-brand-green/50">
         {selected ? (
           <>
             <span className="text-sm leading-none">{selected.icon}</span>
@@ -241,10 +250,13 @@ export function CategoryPicker({
           </>
         )}
         <ChevronDown size={13} className={`text-secondary/50 transition-transform ${open ? "rotate-180" : ""}`} />
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 p-0">
+      </SheetTrigger>
+      <SheetContent side="bottom" className="mx-auto max-w-md gap-0 p-0">
+        <SheetHeader className="sr-only">
+          <SheetTitle>Choose a category</SheetTitle>
+        </SheetHeader>
         <DropdownPanel categories={categories} value={value} select={select} />
-      </PopoverContent>
-    </Popover>
+      </SheetContent>
+    </Sheet>
   );
 }
