@@ -30,7 +30,7 @@ function BalanceTooltip({
 export function BalanceTrendChart({ points }: { points: BalancePoint[] }) {
   if (points.length < 2) {
     return (
-      <div className="flex h-[120px] items-center justify-center text-sm text-secondary/60">
+      <div className="flex h-[120px] items-center justify-center text-sm text-secondary">
         Not enough history yet
       </div>
     );
@@ -63,7 +63,7 @@ export function BalanceTrendChart({ points }: { points: BalancePoint[] }) {
           />
         </AreaChart>
       </ChartContainer>
-      <div className="mt-1 flex justify-between text-[10px] text-secondary/50">
+      <div className="mt-1 flex justify-between text-[10px] text-secondary">
         <span>{new Date(points[0].date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
         <span>
           {new Date(points[points.length - 1].date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}

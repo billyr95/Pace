@@ -65,7 +65,7 @@ export function CategoryList({
         return (
           <li key={category.id}>
             {showSectionHeader && (
-              <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-secondary/50">
+              <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-secondary">
                 <span className="text-sm leading-none">{section.icon}</span>
                 {section.name}
               </div>
@@ -81,7 +81,7 @@ export function CategoryList({
                   )
                 ) : editingId === category.id ? (
                   <span className="flex items-center gap-1 text-sm">
-                    <Label htmlFor={`budget-${category.id}`} className="text-xs text-secondary/50">
+                    <Label htmlFor={`budget-${category.id}`} className="text-xs text-secondary">
                       Proposed
                     </Label>
                     $
@@ -114,7 +114,7 @@ export function CategoryList({
                       setEditingId(category.id);
                       setDraft(hasLimit ? String(limit) : "");
                     }}
-                    className="text-xs font-medium text-secondary/60 underline"
+                    className="text-xs font-medium text-secondary underline"
                   >
                     {hasLimit ? "Edit proposed" : "Set proposed budget"}
                   </Button>
@@ -124,14 +124,14 @@ export function CategoryList({
                 (hasLimit ? (
                   <>
                     <Progress value={pct} className={over ? "[&_[data-slot=progress-indicator]]:bg-destructive" : ""} />
-                    <p className="mt-1 text-xs text-secondary/60">
+                    <p className="mt-1 text-xs text-secondary">
                       ${category.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} actual / $
                       {effectiveLimit.toLocaleString(undefined, { maximumFractionDigits: 0 })} proposed
                       {rolloverAmount > 0 && priorMonthLabel && (
                         <> (includes ${rolloverAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} rolled over from {priorMonthLabel})</>
                       )}
                     </p>
-                    <Label className="mt-1 flex items-center gap-1.5 text-[11px] font-normal text-secondary/50">
+                    <Label className="mt-1 flex items-center gap-1.5 text-[11px] font-normal text-secondary">
                       <Switch
                         size="sm"
                         checked={category.rolloverEnabled}
@@ -142,13 +142,13 @@ export function CategoryList({
                   </>
                 ) : (
                   category.amount > 0 && (
-                    <p className="text-xs text-secondary/50">
+                    <p className="text-xs text-secondary">
                       ${category.amount.toLocaleString(undefined, { maximumFractionDigits: 0 })} actual, no proposed budget set
                     </p>
                   )
                 ))}
               {!isIncome && category.priorAmount !== undefined && priorMonthLabel && (
-                <p className="mt-0.5 text-[11px] text-secondary/40">
+                <p className="mt-0.5 text-[11px] text-secondary">
                   ${category.priorAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} in {priorMonthLabel}
                 </p>
               )}

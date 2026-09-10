@@ -155,7 +155,7 @@ function DropdownPanel({
                 <span className="text-sm leading-none">{option.icon}</span>
                 <span className="flex-1 truncate">{option.name}</span>
                 {option.breadcrumb && (
-                  <span className="shrink-0 text-[11px] text-secondary/40">{option.breadcrumb}</span>
+                  <span className="shrink-0 text-[11px] text-secondary">{option.breadcrumb}</span>
                 )}
               </CommandItem>
             ))
@@ -167,9 +167,9 @@ function DropdownPanel({
             <CommandItem
               value="uncategorized"
               onSelect={() => select(null)}
-              className={!value ? "font-semibold text-ink" : "text-secondary/70"}
+              className={!value ? "font-semibold text-ink" : "text-secondary"}
             >
-              <Circle size={12} className="text-secondary/40" />
+              <Circle size={12} className="text-secondary" />
               Uncategorized
             </CommandItem>
 
@@ -181,7 +181,7 @@ function DropdownPanel({
                     type="button"
                     onClick={() => setTab(t)}
                     className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${
-                      tab === t ? "bg-brand-dark text-brand-paper" : "text-secondary/60 hover:bg-muted"
+                      tab === t ? "bg-brand-dark text-brand-paper" : "text-secondary hover:bg-muted"
                     }`}
                   >
                     {tabLabel[t]}
@@ -199,7 +199,7 @@ function DropdownPanel({
                 <CommandGroup
                   key={group.id}
                   heading={
-                    <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-secondary/50 uppercase">
+                    <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-secondary uppercase">
                       <span className="text-sm leading-none normal-case">{group.icon}</span>
                       {group.name}
                     </span>
@@ -245,11 +245,11 @@ export function CategoryPicker({
           </>
         ) : (
           <>
-            <Circle size={12} className="text-secondary/40" />
+            <Circle size={12} className="text-secondary" />
             <span>Uncategorized</span>
           </>
         )}
-        <ChevronDown size={13} className={`text-secondary/50 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={13} className={`text-secondary transition-transform ${open ? "rotate-180" : ""}`} />
       </SheetTrigger>
       <SheetContent side="bottom" className="mx-auto max-w-md gap-0 p-0">
         <SheetHeader className="sr-only">

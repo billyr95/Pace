@@ -23,7 +23,7 @@ export default async function TransactionsPage() {
       <h1 className="text-xl font-black">Transactions</h1>
 
       {transactions.length === 0 ? (
-        <p className="text-sm text-secondary/60">
+        <p className="text-sm text-secondary">
           No transactions yet. Connect a bank account from the Home tab to get started.
         </p>
       ) : (

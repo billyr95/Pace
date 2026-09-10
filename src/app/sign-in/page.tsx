@@ -22,7 +22,7 @@ type FormValues = z.infer<typeof schema>;
 // dark mode) — shadcn Input's default border/text colors are theme tokens, so they need an
 // explicit override here rather than inheriting whatever the ambient page theme resolves to.
 const authInputClassName =
-  "border-brand-mist bg-brand-paper text-brand-dark placeholder:text-brand-forest/40 focus-visible:border-brand-green focus-visible:ring-brand-green/20";
+  "border-brand-mist bg-brand-paper text-brand-dark placeholder:text-brand-forest/80 focus-visible:border-brand-green focus-visible:ring-brand-green/20";
 
 export default function SignInPage() {
   const router = useRouter();

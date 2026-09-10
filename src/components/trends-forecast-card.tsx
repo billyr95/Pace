@@ -18,7 +18,7 @@ export function TrendsForecastCard() {
       <CardContent>
         <div className="flex items-center gap-1.5">
           <TrendingUp size={15} className="text-brand-green" />
-          <h2 className="text-sm font-semibold text-secondary/70">Spending trends &amp; cash-flow forecast</h2>
+          <h2 className="text-sm font-semibold text-secondary">Spending trends &amp; cash-flow forecast</h2>
         </div>
 
         {loading && !data ? (
@@ -32,14 +32,14 @@ export function TrendsForecastCard() {
               size="sm"
               onClick={getAnalysis}
               disabled={loading}
-              className="mt-1 px-0 text-xs text-secondary/60 underline"
+              className="mt-1 px-0 text-xs text-secondary underline"
             >
               {loading ? "Refreshing…" : "Refresh"}
             </Button>
           </>
         ) : (
           <>
-            <p className="mt-1 mb-3 text-sm text-secondary/60">
+            <p className="mt-1 mb-3 text-sm text-secondary">
               See where your spending is trending and what next month might look like.
             </p>
             <Button type="button" onClick={getAnalysis} disabled={loading} size="sm">

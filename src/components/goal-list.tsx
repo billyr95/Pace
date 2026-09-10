@@ -75,7 +75,7 @@ export function GoalList({ goals }: { goals: GoalRow[] }) {
   }
 
   if (goals.length === 0) {
-    return <p className="text-sm text-secondary/60">No goals yet — add one below.</p>;
+    return <p className="text-sm text-secondary">No goals yet — add one below.</p>;
   }
 
   return (
@@ -96,7 +96,7 @@ export function GoalList({ goals }: { goals: GoalRow[] }) {
                   variant="ghost"
                   size="sm"
                   onClick={() => startEdit(row)}
-                  className="text-xs font-medium text-secondary/60 underline"
+                  className="text-xs font-medium text-secondary underline"
                 >
                   {hasGoal ? "Edit goal" : "Set a goal"}
                 </Button>
@@ -106,7 +106,7 @@ export function GoalList({ goals }: { goals: GoalRow[] }) {
             {editingId === row.categoryId ? (
               <div className="flex flex-wrap items-center gap-2 rounded-xl bg-muted p-2.5">
                 <div className="flex items-center gap-1">
-                  <Label htmlFor={`goal-amount-${row.categoryId}`} className="text-xs text-secondary/50">
+                  <Label htmlFor={`goal-amount-${row.categoryId}`} className="text-xs text-secondary">
                     Target $
                   </Label>
                   <Input
@@ -120,7 +120,7 @@ export function GoalList({ goals }: { goals: GoalRow[] }) {
                   />
                 </div>
                 <div className="flex items-center gap-1">
-                  <Label htmlFor={`goal-date-${row.categoryId}`} className="text-xs text-secondary/50">
+                  <Label htmlFor={`goal-date-${row.categoryId}`} className="text-xs text-secondary">
                     By
                   </Label>
                   <Input
@@ -143,7 +143,7 @@ export function GoalList({ goals }: { goals: GoalRow[] }) {
                 </Button>
                 {row.goalId && (
                   <AlertDialog>
-                    <AlertDialogTrigger className="text-xs text-secondary/50 underline">
+                    <AlertDialogTrigger className="text-xs text-secondary underline">
                       Remove goal
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -171,7 +171,7 @@ export function GoalList({ goals }: { goals: GoalRow[] }) {
                   variant="ghost"
                   size="sm"
                   onClick={() => setEditingId(null)}
-                  className="text-xs text-secondary/50"
+                  className="text-xs text-secondary"
                 >
                   Cancel
                 </Button>
@@ -180,12 +180,12 @@ export function GoalList({ goals }: { goals: GoalRow[] }) {
               hasGoal && (
                 <>
                   <Progress value={pct} />
-                  <p className="mt-1 text-xs text-secondary/60">
+                  <p className="mt-1 text-xs text-secondary">
                     ${row.totalContributed.toLocaleString(undefined, { maximumFractionDigits: 0 })} of $
                     {row.targetAmount!.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                     {row.targetDate && ` by ${new Date(row.targetDate).toLocaleDateString(undefined, { month: "long", year: "numeric" })}`}
                   </p>
-                  {projection && <p className="mt-0.5 text-[11px] text-secondary/40">{projection}</p>}
+                  {projection && <p className="mt-0.5 text-[11px] text-secondary">{projection}</p>}
 
                   <GoalChat categoryId={row.categoryId} />
                 </>

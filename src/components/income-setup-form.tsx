@@ -63,7 +63,7 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
   if (!editing && profile) {
     return (
       <div className="flex items-center justify-between text-sm">
-        <p className="text-secondary/70">
+        <p className="text-secondary">
           {PAY_FREQUENCY_LABELS[profile.frequency]}
           {profile.amount != null && (
             <>
@@ -78,7 +78,7 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
           variant="ghost"
           size="sm"
           onClick={() => setEditing(true)}
-          className="text-xs text-secondary/60 underline"
+          className="text-xs text-secondary underline"
         >
           Edit
         </Button>
@@ -89,7 +89,7 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
       <div className="space-y-1">
-        <Label htmlFor="pay-frequency" className="text-xs font-medium text-secondary/70">
+        <Label htmlFor="pay-frequency" className="text-xs font-medium text-secondary">
           How often do you get paid?
         </Label>
         <Select value={frequency} onValueChange={(value) => setValue("frequency", value as PayFrequency)}>
@@ -109,13 +109,13 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
       {frequency !== "irregular" && (
         <>
           <div className="space-y-1">
-            <Label htmlFor="pay-amount" className="text-xs font-medium text-secondary/70">
+            <Label htmlFor="pay-amount" className="text-xs font-medium text-secondary">
               {variable ? "Average take-home per paycheck" : "Take-home per paycheck"}
             </Label>
             <Input id="pay-amount" type="number" min={0} step="0.01" placeholder="0.00" {...register("amount")} />
             {errors.amount && <p className="text-xs text-destructive">{errors.amount.message}</p>}
           </div>
-          <Label className="flex items-center gap-2 text-xs font-normal text-secondary/70">
+          <Label className="flex items-center gap-2 text-xs font-normal text-secondary">
             <Switch checked={variable} onCheckedChange={(checked) => setValue("variable", checked)} />
             My paycheck amount varies (this is just a typical average)
           </Label>
@@ -127,7 +127,7 @@ export function IncomeSetupForm({ profile }: { profile: IncomeProfileData }) {
           {isSubmitting ? "Saving…" : "Save"}
         </Button>
         {profile && (
-          <Button type="button" variant="ghost" onClick={() => setEditing(false)} className="text-secondary/60">
+          <Button type="button" variant="ghost" onClick={() => setEditing(false)} className="text-secondary">
             Cancel
           </Button>
         )}

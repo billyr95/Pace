@@ -55,7 +55,7 @@ export function AddCategoryForm({ parentId, label }: { parentId: string | null; 
 
   return (
     <Sheet open={open} onOpenChange={(next) => (next ? setOpen(true) : closeAndReset())}>
-      <SheetTrigger className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-divider py-2.5 text-sm font-medium text-secondary/60">
+      <SheetTrigger className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-divider py-2.5 text-sm font-medium text-secondary">
         <Plus size={15} />
         {label}
       </SheetTrigger>
@@ -80,7 +80,7 @@ export function AddCategoryForm({ parentId, label }: { parentId: string | null; 
           <Button type="submit" form={formId} disabled={isSubmitting} className="flex-1">
             Save
           </Button>
-          <Button type="button" variant="ghost" onClick={closeAndReset} className="text-secondary/60">
+          <Button type="button" variant="ghost" onClick={closeAndReset} className="text-secondary">
             Cancel
           </Button>
         </SheetFooter>

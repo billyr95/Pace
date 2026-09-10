@@ -10,7 +10,7 @@ export function MoneyLeaksCard({ leaks }: { leaks: MoneyLeak[] }) {
       <CardContent>
         <div className="flex items-center gap-1.5">
           <Droplets size={15} className="text-brand-green" />
-          <h2 className="text-sm font-semibold text-secondary/70">Money leaks</h2>
+          <h2 className="text-sm font-semibold text-secondary">Money leaks</h2>
         </div>
         <ul className="mt-2 space-y-1.5">
           {leaks.map((leak) => (

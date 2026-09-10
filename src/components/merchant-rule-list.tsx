@@ -63,14 +63,14 @@ export function MerchantRuleList({
   }
 
   if (items.length === 0) {
-    return <p className="text-sm text-secondary/60">No auto-categorization rules yet.</p>;
+    return <p className="text-sm text-secondary">No auto-categorization rules yet.</p>;
   }
 
   return (
     <div className="space-y-5">
       {groups.map(([groupName, group]) => (
         <div key={groupName}>
-          <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-secondary/50">
+          <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-secondary">
             <span className="text-sm leading-none">{group.icon}</span>
             {groupName}
           </h2>
@@ -81,7 +81,7 @@ export function MerchantRuleList({
                   <CardContent className="flex items-center gap-2">
                     <span className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold capitalize">{rule.merchant}</p>
-                      <p className="text-xs text-secondary/50">{rule.direction === "in" ? "Money in" : "Money out"}</p>
+                      <p className="text-xs text-secondary">{rule.direction === "in" ? "Money in" : "Money out"}</p>
                     </span>
                     <CategoryPicker
                       categories={categories}
@@ -94,7 +94,7 @@ export function MerchantRuleList({
                       size="icon-sm"
                       onClick={() => remove(rule.id)}
                       aria-label="Delete rule"
-                      className="shrink-0 text-secondary/50"
+                      className="shrink-0 text-secondary"
                     >
                       <X size={14} />
                     </Button>

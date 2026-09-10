@@ -38,7 +38,7 @@ export function ThemeToggle() {
         <ToggleGroupItem
           key={opt.value}
           value={opt.value}
-          className="rounded-full px-3 py-1.5 text-xs font-semibold text-secondary/70 data-[state=on]:bg-surface data-[state=on]:text-ink data-[state=on]:shadow-sm"
+          className="rounded-full px-3 py-1.5 text-xs font-semibold text-secondary data-[state=on]:bg-surface data-[state=on]:text-ink data-[state=on]:shadow-sm"
         >
           {opt.label}
         </ToggleGroupItem>

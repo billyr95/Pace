@@ -203,73 +203,73 @@ export default async function InsightsPage({
       </div>
 
       <div className="rounded-2xl bg-surface p-4 shadow-sm">
-        <p className="text-sm text-secondary/70">Spent {rangePhrase}</p>
+        <p className="text-sm text-secondary">Spent {rangePhrase}</p>
         <p className="text-2xl font-black">{fmt(totalSpent)}</p>
       </div>
 
       {pieSlices.length > 0 && (
         <div className="rounded-2xl bg-surface p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-secondary/70">Spend by category</h2>
+          <h2 className="mb-3 text-sm font-semibold text-secondary">Spend by category</h2>
           <SpendPieChart slices={pieSlices} total={totalSpent} rangePhrase={rangePhrase} />
         </div>
       )}
 
       {barGroups.length > 0 && (
         <div className="rounded-2xl bg-surface p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-secondary/70">Breakdown by category</h2>
+          <h2 className="mb-3 text-sm font-semibold text-secondary">Breakdown by category</h2>
           <CategorySpendBars groups={barGroups} />
         </div>
       )}
 
       {expenseGroups.length === 0 && (
-        <p className="text-sm text-secondary/60">
+        <p className="text-sm text-secondary">
           No categorized spending {rangePhrase} yet — try a wider range above, or categorize some transactions.
         </p>
       )}
 
       <div className="rounded-2xl bg-surface p-4 shadow-sm">
-        <p className="text-sm text-secondary/70">Received {rangePhrase}</p>
+        <p className="text-sm text-secondary">Received {rangePhrase}</p>
         <p className="text-2xl font-black">{fmt(totalReceived)}</p>
       </div>
 
       {incomePieSlices.length > 0 && (
         <div className="rounded-2xl bg-surface p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-secondary/70">Money in by category</h2>
+          <h2 className="mb-3 text-sm font-semibold text-secondary">Money in by category</h2>
           <SpendPieChart slices={incomePieSlices} total={totalReceived} rangePhrase={rangePhrase} verb="received" />
         </div>
       )}
 
       {incomeBarGroups.length > 0 && (
         <div className="rounded-2xl bg-surface p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-secondary/70">Money in breakdown</h2>
+          <h2 className="mb-3 text-sm font-semibold text-secondary">Money in breakdown</h2>
           <CategorySpendBars groups={incomeBarGroups} />
         </div>
       )}
 
       <div className="rounded-2xl bg-surface p-4 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-secondary/70">Income</h2>
+        <h2 className="mb-3 text-sm font-semibold text-secondary">Income</h2>
 
         <div className="mb-4 grid grid-cols-2 gap-3">
           <div>
             <p className="text-lg font-black">{fmt(ytdIncome)}</p>
-            <p className="text-xs text-secondary/50">made this year</p>
+            <p className="text-xs text-secondary">made this year</p>
           </div>
           <div>
             <p className="text-lg font-black">{fmt(expectedThisMonth)}</p>
-            <p className="text-xs text-secondary/50">expected this month</p>
+            <p className="text-xs text-secondary">expected this month</p>
           </div>
           <div>
             <p className="text-lg font-black">{fmt(recentMonthlyAvg)}</p>
-            <p className="text-xs text-secondary/50">avg. per month (last 90 days)</p>
+            <p className="text-xs text-secondary">avg. per month (last 90 days)</p>
           </div>
           <div>
             <p className="text-lg font-black">{fmt(projectedAnnual)}</p>
-            <p className="text-xs text-secondary/50">projected this year</p>
+            <p className="text-xs text-secondary">projected this year</p>
           </div>
         </div>
 
         <div className="border-t border-divider pt-3">
-          <p className="mb-2 text-xs font-medium text-secondary/70">Pay schedule</p>
+          <p className="mb-2 text-xs font-medium text-secondary">Pay schedule</p>
           <IncomeSetupForm profile={profileData} />
         </div>
       </div>

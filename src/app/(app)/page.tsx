@@ -66,7 +66,7 @@ export default async function HomePage() {
     <div className="space-y-6 px-5 pt-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-secondary/70">
+          <p className="text-sm text-secondary">
             {greeting}, {session!.user.name?.split(" ")[0] ?? "there"}
           </p>
         </div>
@@ -76,7 +76,7 @@ export default async function HomePage() {
             await signOut({ redirectTo: "/sign-in" });
           }}
         >
-          <button type="submit" className="text-xs font-medium text-secondary/60 underline">
+          <button type="submit" className="text-xs font-medium text-secondary underline">
             Sign out
           </button>
         </form>
@@ -90,7 +90,7 @@ export default async function HomePage() {
             ${Math.round(safeToSpend).toLocaleString()}
           </p>
           <p className="mt-1 text-sm text-brand-paper/70">Safe to spend this month</p>
-          <p className="mt-2 text-[11px] text-brand-paper/40">
+          <p className="mt-2 text-[11px] text-brand-paper/70">
             Balance minus upcoming bills and this month&rsquo;s savings goals
           </p>
         </div>
@@ -99,7 +99,7 @@ export default async function HomePage() {
       <GoalsSummaryCard goals={goalRows} />
 
       <div>
-        <p className="text-sm text-secondary/70">Current balance</p>
+        <p className="text-sm text-secondary">Current balance</p>
         <p className="text-3xl font-black tracking-tight">
           ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
@@ -119,7 +119,7 @@ export default async function HomePage() {
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-divider bg-surface p-8 text-center">
           <LogoMark size={40} />
           <p className="font-semibold">Connect your first account</p>
-          <p className="text-sm text-secondary/70">
+          <p className="text-sm text-secondary">
             Link a bank account to see real balances, transactions, and budgets here.
           </p>
           <ConnectBankButton className="mt-2" />
@@ -144,7 +144,7 @@ export default async function HomePage() {
 
       {recurringBills.length > 0 && (
         <div>
-          <h2 className="mb-2 text-sm font-semibold text-secondary/70">Upcoming bills</h2>
+          <h2 className="mb-2 text-sm font-semibold text-secondary">Upcoming bills</h2>
           <ul className="space-y-2">
             {recurringBills.map((bill) => {
               const daysUntil = Math.round((bill.nextDueDate.getTime() - now.getTime()) / 86_400_000);
@@ -163,7 +163,7 @@ export default async function HomePage() {
                   </span>
                   <span className="flex-1">
                     <p className="text-sm font-semibold capitalize">{bill.displayName}</p>
-                    <p className="text-xs text-secondary/60">{dueLabel}</p>
+                    <p className="text-xs text-secondary">{dueLabel}</p>
                   </span>
                   <span className="font-semibold">
                     ${bill.averageAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
@@ -177,7 +177,7 @@ export default async function HomePage() {
 
       {accounts.length > 0 && (
         <div>
-          <h2 className="mb-2 text-sm font-semibold text-secondary/70">Accounts</h2>
+          <h2 className="mb-2 text-sm font-semibold text-secondary">Accounts</h2>
           <ul className="space-y-2">
             {accounts.map((account) => {
               const Icon = accountIcon(account.type);
@@ -188,7 +188,7 @@ export default async function HomePage() {
                   </span>
                   <span className="flex-1">
                     <p className="text-sm font-semibold">{account.name}</p>
-                    {account.mask && <p className="text-xs text-secondary/60">•••• {account.mask}</p>}
+                    {account.mask && <p className="text-xs text-secondary">•••• {account.mask}</p>}
                   </span>
                   <span className="font-semibold">
                     ${(account.currentBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}

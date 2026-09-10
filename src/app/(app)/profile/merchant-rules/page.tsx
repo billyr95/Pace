@@ -26,7 +26,7 @@ export default async function MerchantRulesPage() {
 
   return (
     <div className="space-y-4 px-5 pt-6">
-      <Link href="/profile" className="flex items-center gap-1 text-sm font-medium text-secondary/60">
+      <Link href="/profile" className="flex items-center gap-1 text-sm font-medium text-secondary">
         <ChevronLeft size={16} />
         Profile
       </Link>

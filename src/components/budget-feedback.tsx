@@ -18,7 +18,7 @@ export function BudgetFeedback() {
       <CardContent>
         <div className="flex items-center gap-1.5">
           <Sparkles size={15} className="text-brand-green" />
-          <h2 className="text-sm font-semibold text-secondary/70">Budget check-in</h2>
+          <h2 className="text-sm font-semibold text-secondary">Budget check-in</h2>
         </div>
 
         {loading && !data ? (
@@ -32,14 +32,14 @@ export function BudgetFeedback() {
               size="sm"
               onClick={getFeedback}
               disabled={loading}
-              className="mt-1 px-0 text-xs text-secondary/60 underline"
+              className="mt-1 px-0 text-xs text-secondary underline"
             >
               {loading ? "Refreshing…" : "Refresh"}
             </Button>
           </>
         ) : (
           <>
-            <p className="mt-1 mb-3 text-sm text-secondary/60">
+            <p className="mt-1 mb-3 text-sm text-secondary">
               Get a quick read on whether you&rsquo;re on track this month.
             </p>
             <Button type="button" onClick={getFeedback} disabled={loading} size="sm">

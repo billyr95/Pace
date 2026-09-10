@@ -13,15 +13,15 @@ export function GoalsSummaryCard({ goals }: { goals: GoalRow[] }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Target size={15} className="text-brand-green" />
-            <h2 className="text-sm font-semibold text-secondary/70">Goals</h2>
+            <h2 className="text-sm font-semibold text-secondary">Goals</h2>
           </div>
-          <Link href="/plan" className="text-xs font-medium text-secondary/60 underline">
+          <Link href="/plan" className="text-xs font-medium text-secondary underline">
             Manage
           </Link>
         </div>
 
         {active.length === 0 ? (
-          <p className="mt-2 text-sm text-secondary/60">
+          <p className="mt-2 text-sm text-secondary">
             No savings goals yet — head to Plan &gt; Goals to add one, like a vacation fund or an emergency fund.
           </p>
         ) : (
@@ -35,7 +35,7 @@ export function GoalsSummaryCard({ goals }: { goals: GoalRow[] }) {
                       <span className="leading-none">{goal.icon}</span>
                       {goal.name}
                     </span>
-                    <span className="text-xs text-secondary/60">
+                    <span className="text-xs text-secondary">
                       ${goal.totalContributed.toLocaleString(undefined, { maximumFractionDigits: 0 })} of $
                       {goal.targetAmount!.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                     </span>

@@ -87,12 +87,12 @@ export function TransactionList({
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <div className="flex flex-1 items-center gap-2 rounded-full border border-divider bg-surface px-3 py-2">
-          <Search size={15} className="shrink-0 text-secondary/40" />
+          <Search size={15} className="shrink-0 text-secondary" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search transactions…"
-            className="w-full bg-transparent text-sm outline-none placeholder:text-secondary/40"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-secondary"
           />
         </div>
 
@@ -100,7 +100,7 @@ export function TransactionList({
           <SheetTrigger
             aria-label="Filters"
             className={`relative flex shrink-0 items-center justify-center rounded-full border p-2.5 transition ${
-              activeFilterCount > 0 ? "border-brand-green bg-brand-green/10 text-brand-green" : "border-divider text-secondary/60"
+              activeFilterCount > 0 ? "border-brand-green bg-brand-green/10 text-brand-green" : "border-divider text-secondary"
             }`}
           >
             <SlidersHorizontal size={15} />
@@ -117,7 +117,7 @@ export function TransactionList({
             <div className="space-y-3 px-4">
               <div className="flex items-center gap-2">
                 <div className="flex-1 space-y-1">
-                  <Label htmlFor="min-amount" className="text-xs text-secondary/50">
+                  <Label htmlFor="min-amount" className="text-xs text-secondary">
                     Min $
                   </Label>
                   <Input
@@ -130,7 +130,7 @@ export function TransactionList({
                   />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <Label htmlFor="max-amount" className="text-xs text-secondary/50">
+                  <Label htmlFor="max-amount" className="text-xs text-secondary">
                     Max $
                   </Label>
                   <Input
@@ -144,7 +144,7 @@ export function TransactionList({
                 </div>
               </div>
               <div className="space-y-1">
-                <Label htmlFor="category-filter" className="text-xs text-secondary/50">
+                <Label htmlFor="category-filter" className="text-xs text-secondary">
                   Category
                 </Label>
                 <Select value={categoryId || "all"} onValueChange={(v) => setCategoryId(v && v !== "all" ? v : "")}>
@@ -165,7 +165,7 @@ export function TransactionList({
             </div>
             {activeFilterCount > 0 && (
               <SheetFooter>
-                <Button type="button" variant="ghost" onClick={clearFilters} className="gap-1 text-secondary/60">
+                <Button type="button" variant="ghost" onClick={clearFilters} className="gap-1 text-secondary">
                   <X size={12} />
                   Clear filters
                 </Button>
@@ -176,13 +176,13 @@ export function TransactionList({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-secondary/60">
+        <p className="text-sm text-secondary">
           {hasActiveFilters ? "No transactions match your filters." : "No transactions yet."}
         </p>
       ) : (
         Array.from(grouped.entries()).map(([day, rows]) => (
           <div key={day}>
-            <h2 className="mb-2 text-xs font-semibold text-secondary/50">
+            <h2 className="mb-2 text-xs font-semibold text-secondary">
               {new Date(day).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
             </h2>
             <ul className="space-y-2">

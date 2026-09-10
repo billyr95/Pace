@@ -51,7 +51,7 @@ export function TransactionRow({
         <p className={`font-semibold ${isInflow ? "text-brand-green" : "text-ink"}`}>
           {isInflow ? "+" : "-"}${Math.abs(transaction.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </p>
-        {transaction.pending && <p className="text-[10px] font-normal text-secondary/50">pending</p>}
+        {transaction.pending && <p className="text-[10px] font-normal text-secondary">pending</p>}
       </span>
     </li>
   );

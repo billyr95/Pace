@@ -69,7 +69,7 @@ export function GoalChat({ categoryId }: { categoryId: string }) {
             <p
               key={i}
               className={`rounded-lg p-2 text-xs leading-relaxed ${
-                m.role === "assistant" ? "bg-muted text-secondary/80" : "ml-4 bg-brand-green/10 text-ink"
+                m.role === "assistant" ? "bg-muted text-secondary" : "ml-4 bg-brand-green/10 text-ink"
               }`}
             >
               {m.text}

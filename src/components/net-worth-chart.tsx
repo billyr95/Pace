@@ -25,7 +25,7 @@ export function NetWorthChart({ points }: { points: BalancePoint[] }) {
             <ToggleGroupItem
               key={r.key}
               value={r.key}
-              className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-secondary/50 data-[state=on]:bg-muted data-[state=on]:text-ink"
+              className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-secondary data-[state=on]:bg-muted data-[state=on]:text-ink"
             >
               {r.label}
             </ToggleGroupItem>

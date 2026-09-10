@@ -40,7 +40,7 @@ export function CircularProgress({
       </svg>
       <div className="absolute flex flex-col items-center gap-1 text-center" style={{ maxWidth: SIZE * 0.8 }}>
         <span className="text-base font-black">{label}</span>
-        <span className="text-[11px] text-secondary/60">{sublabel}</span>
+        <span className="text-[11px] text-secondary">{sublabel}</span>
       </div>
     </div>
   );

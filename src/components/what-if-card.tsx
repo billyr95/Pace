@@ -38,9 +38,9 @@ export function WhatIfCard() {
       <CardContent>
         <div className="flex items-center gap-1.5">
           <HelpCircle size={15} className="text-brand-green" />
-          <h2 className="text-sm font-semibold text-secondary/70">What if?</h2>
+          <h2 className="text-sm font-semibold text-secondary">What if?</h2>
         </div>
-        <p className="mt-1 mb-3 text-sm text-secondary/60">
+        <p className="mt-1 mb-3 text-sm text-secondary">
           Ask about a change to your spending and see the impact on your savings.
         </p>
         <div className="flex items-center gap-2">
@@ -62,7 +62,7 @@ export function WhatIfCard() {
         {result && (
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-muted p-3">
-              <p className="mb-2 text-xs font-semibold text-secondary/50 uppercase">Current</p>
+              <p className="mb-2 text-xs font-semibold text-secondary uppercase">Current</p>
               <p className="text-sm">
                 {result.category}: <span className="font-semibold">{fmt(result.currentAmount)}</span>
               </p>
@@ -71,7 +71,7 @@ export function WhatIfCard() {
               </p>
             </div>
             <div className="rounded-xl bg-muted p-3">
-              <p className="mb-2 text-xs font-semibold text-secondary/50 uppercase">{result.label}</p>
+              <p className="mb-2 text-xs font-semibold text-secondary uppercase">{result.label}</p>
               <p className="text-sm">
                 {result.category}: <span className="font-semibold">{fmt(result.newAmount)}</span>
               </p>

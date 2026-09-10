@@ -17,14 +17,14 @@ export function IncomeSourcesCard({ sources }: { sources: RecurringItem[] }) {
       <CardContent>
         <div className="flex items-center gap-1.5">
           <Wallet size={15} className="text-brand-green" />
-          <h2 className="text-sm font-semibold text-secondary/70">Income sources</h2>
+          <h2 className="text-sm font-semibold text-secondary">Income sources</h2>
         </div>
         <ul className="mt-2 space-y-2">
           {sources.map((source) => (
             <li key={source.key} className="flex items-center justify-between text-sm">
               <span>
                 <span className="font-semibold capitalize">{source.displayName}</span>{" "}
-                <span className="text-secondary/50">({cadenceLabel(source.intervalDays)})</span>
+                <span className="text-secondary">({cadenceLabel(source.intervalDays)})</span>
               </span>
               <span className="font-semibold text-brand-green">
                 +${source.averageAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}

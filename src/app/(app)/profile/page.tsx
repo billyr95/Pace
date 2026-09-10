@@ -21,14 +21,14 @@ export default async function ProfilePage() {
         <LogoMark size={48} />
         <div>
           <p className="font-black">{session!.user.name}</p>
-          <p className="text-sm text-secondary/60">{session!.user.email}</p>
+          <p className="text-sm text-secondary">{session!.user.email}</p>
         </div>
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-secondary/70">Linked institutions</h2>
+        <h2 className="mb-2 text-sm font-semibold text-secondary">Linked institutions</h2>
         {plaidItems.length === 0 ? (
-          <p className="text-sm text-secondary/60">No banks connected yet.</p>
+          <p className="text-sm text-secondary">No banks connected yet.</p>
         ) : (
           <ul className="space-y-2">
             {plaidItems.map((item) => (
@@ -45,7 +45,7 @@ export default async function ProfilePage() {
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-secondary/70">Auto-categorization rules</h2>
+        <h2 className="mb-2 text-sm font-semibold text-secondary">Auto-categorization rules</h2>
         <Link
           href="/profile/merchant-rules"
           className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm"
@@ -57,14 +57,14 @@ export default async function ProfilePage() {
             <p className="text-sm font-semibold">
               {ruleCount} rule{ruleCount === 1 ? "" : "s"}
             </p>
-            <p className="text-xs text-secondary/60">Organized by category</p>
+            <p className="text-xs text-secondary">Organized by category</p>
           </span>
-          <ChevronRight size={16} className="text-secondary/40" />
+          <ChevronRight size={16} className="text-secondary" />
         </Link>
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-secondary/70">Appearance</h2>
+        <h2 className="mb-2 text-sm font-semibold text-secondary">Appearance</h2>
         <ThemeToggle />
       </div>
 

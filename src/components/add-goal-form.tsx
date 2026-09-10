@@ -77,7 +77,7 @@ export function AddGoalForm({ parentId }: { parentId: string }) {
 
   return (
     <Sheet open={open} onOpenChange={(next) => (next ? setOpen(true) : closeAndReset())}>
-      <SheetTrigger className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-divider py-2.5 text-sm font-medium text-secondary/60">
+      <SheetTrigger className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-divider py-2.5 text-sm font-medium text-secondary">
         <Plus size={15} />
         Add a goal
       </SheetTrigger>
@@ -104,13 +104,13 @@ export function AddGoalForm({ parentId }: { parentId: string }) {
 
           <div className="flex items-center gap-2">
             <div className="flex-1 space-y-1">
-              <Label htmlFor={`${formId}-amount`} className="text-xs text-secondary/50">
+              <Label htmlFor={`${formId}-amount`} className="text-xs text-secondary">
                 Target $
               </Label>
               <Input id={`${formId}-amount`} type="number" min={1} {...register("amount")} />
             </div>
             <div className="space-y-1">
-              <Label htmlFor={`${formId}-date`} className="text-xs text-secondary/50">
+              <Label htmlFor={`${formId}-date`} className="text-xs text-secondary">
                 By
               </Label>
               <Input id={`${formId}-date`} type="date" {...register("date")} />
@@ -123,7 +123,7 @@ export function AddGoalForm({ parentId }: { parentId: string }) {
           <Button type="submit" form={formId} disabled={isSubmitting} className="flex-1">
             {isSubmitting ? "Saving…" : "Save"}
           </Button>
-          <Button type="button" variant="ghost" onClick={closeAndReset} className="text-secondary/60">
+          <Button type="button" variant="ghost" onClick={closeAndReset} className="text-secondary">
             Cancel
           </Button>
         </SheetFooter>

@@ -77,10 +77,10 @@ export default async function PlanPage() {
 
       <div className="flex items-center justify-between rounded-2xl bg-surface p-4 shadow-sm">
         <div>
-          <p className="text-sm text-secondary/70">
+          <p className="text-sm text-secondary">
             ${Math.max(0, left).toLocaleString(undefined, { maximumFractionDigits: 0 })} left
           </p>
-          <p className="text-xs text-secondary/50">of proposed budget this month</p>
+          <p className="text-xs text-secondary">of proposed budget this month</p>
         </div>
         <CircularProgress
           pct={pct}
@@ -103,7 +103,7 @@ export default async function PlanPage() {
             )}
             <svg
               viewBox="0 0 20 20"
-              className="h-4 w-4 shrink-0 text-secondary/40 transition-transform group-open:rotate-180"
+              className="h-4 w-4 shrink-0 text-secondary transition-transform group-open:rotate-180"
               fill="currentColor"
             >
               <path
@@ -124,9 +124,9 @@ export default async function PlanPage() {
       </div>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-secondary/70">Categories</h2>
+        <h2 className="mb-3 text-sm font-semibold text-secondary">Categories</h2>
         {categoryGroups.length === 0 ? (
-          <p className="text-sm text-secondary/60">No categories yet.</p>
+          <p className="text-sm text-secondary">No categories yet.</p>
         ) : (
           <ul className="space-y-2">
             {categoryGroups.map((group) => {
@@ -153,20 +153,20 @@ export default async function PlanPage() {
                           </span>
                         )
                       ) : group.totalBudget > 0 ? (
-                        <span className="text-xs text-secondary/60">
+                        <span className="text-xs text-secondary">
                           ${group.totalSpent.toLocaleString(undefined, { maximumFractionDigits: 0 })} / $
                           {group.totalBudget.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </span>
                       ) : (
                         group.totalSpent > 0 && (
-                          <span className="text-xs text-secondary/50">
+                          <span className="text-xs text-secondary">
                             ${group.totalSpent.toLocaleString(undefined, { maximumFractionDigits: 0 })} spent
                           </span>
                         )
                       )}
                       <svg
                         viewBox="0 0 20 20"
-                        className="h-4 w-4 shrink-0 text-secondary/40 transition-transform group-open:rotate-180"
+                        className="h-4 w-4 shrink-0 text-secondary transition-transform group-open:rotate-180"
                         fill="currentColor"
                       >
                         <path
