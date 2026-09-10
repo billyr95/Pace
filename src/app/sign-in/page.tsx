@@ -18,6 +18,12 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
+// This form is intentionally theme-independent (always the white brand-paper card, never
+// dark mode) — shadcn Input's default border/text colors are theme tokens, so they need an
+// explicit override here rather than inheriting whatever the ambient page theme resolves to.
+const authInputClassName =
+  "border-brand-mist bg-brand-paper text-brand-dark placeholder:text-brand-forest/40 focus-visible:border-brand-green focus-visible:ring-brand-green/20";
+
 export default function SignInPage() {
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -60,14 +66,26 @@ export default function SignInPage() {
           <Label htmlFor="email" className="text-sm font-medium text-brand-forest">
             Email
           </Label>
-          <Input id="email" type="email" autoComplete="email" {...register("email")} />
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            className={authInputClassName}
+            {...register("email")}
+          />
           {errors.email && <p className="text-xs text-red-600">{errors.email.message}</p>}
         </div>
         <div className="space-y-1">
           <Label htmlFor="password" className="text-sm font-medium text-brand-forest">
             Password
           </Label>
-          <Input id="password" type="password" autoComplete="current-password" {...register("password")} />
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            className={authInputClassName}
+            {...register("password")}
+          />
           {errors.password && <p className="text-xs text-red-600">{errors.password.message}</p>}
         </div>
         {submitError && <p className="text-sm text-red-600">{submitError}</p>}

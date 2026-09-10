@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { HelpCircle } from "lucide-react";
 import { useAsyncInsight } from "@/hooks/use-async-insight";
+import { AiLoading } from "@/components/ai-loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,10 +53,11 @@ export function WhatIfCard() {
             placeholder="What if I move to a $2,000 apartment?"
           />
           <Button type="button" onClick={submit} disabled={loading || !question.trim()} size="sm">
-            {loading ? "…" : "Ask"}
+            Ask
           </Button>
         </div>
         {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+        {loading && !result && <AiLoading label="Crunching the numbers…" className="mt-3" />}
 
         {result && (
           <div className="mt-4 grid grid-cols-2 gap-3">

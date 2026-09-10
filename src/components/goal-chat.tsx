@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Sparkles, Send } from "lucide-react";
+import { AiLoading } from "@/components/ai-loading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -74,7 +75,7 @@ export function GoalChat({ categoryId }: { categoryId: string }) {
               {m.text}
             </p>
           ))}
-          {loading && <p className="px-1 text-xs text-secondary/50">Thinking…</p>}
+          {loading && <AiLoading label="Thinking…" size={16} className="px-1" />}
         </div>
       </ScrollArea>
       {error && <p className="px-1 text-xs text-destructive">{error}</p>}

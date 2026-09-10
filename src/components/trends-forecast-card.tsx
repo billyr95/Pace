@@ -2,9 +2,9 @@
 
 import { TrendingUp } from "lucide-react";
 import { useAsyncInsight } from "@/hooks/use-async-insight";
+import { AiLoading } from "@/components/ai-loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export function TrendsForecastCard() {
   const { data, loading, error, run } = useAsyncInsight<{ feedback: string }>();
@@ -22,10 +22,7 @@ export function TrendsForecastCard() {
         </div>
 
         {loading && !data ? (
-          <div className="mt-3 space-y-2">
-            <Skeleton className="h-3.5 w-full" />
-            <Skeleton className="h-3.5 w-4/5" />
-          </div>
+          <AiLoading label="Analyzing…" className="mt-3" />
         ) : data ? (
           <>
             <p className="mt-2 text-sm leading-relaxed">{data.feedback}</p>
@@ -46,7 +43,7 @@ export function TrendsForecastCard() {
               See where your spending is trending and what next month might look like.
             </p>
             <Button type="button" onClick={getAnalysis} disabled={loading} size="sm">
-              {loading ? "Analyzing…" : "Analyze"}
+              Analyze
             </Button>
           </>
         )}
