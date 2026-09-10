@@ -1,31 +1,41 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useState } from "react";
 import { LogoWordmark } from "@/components/logo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+const schema = z.object({
+  email: z.email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+});
+type FormValues = z.infer<typeof schema>;
 
 export default function SignInPage() {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    const form = new FormData(event.currentTarget);
+  async function onSubmit(values: FormValues) {
+    setSubmitError(null);
     const result = await signIn("credentials", {
-      email: form.get("email"),
-      password: form.get("password"),
+      email: values.email,
+      password: values.password,
       redirect: false,
     });
-
-    setLoading(false);
     if (result?.error) {
-      setError("Invalid email or password.");
+      setSubmitError("Invalid email or password.");
       return;
     }
     router.push("/");
@@ -44,40 +54,30 @@ export default function SignInPage() {
         <span className="text-brand-paper/80">Finance that moves with you.</span>{" "}
         <span className="font-medium text-brand-green">Not against you.</span>
       </p>
-      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-sm">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-sm">
         <h1 className="text-lg font-bold text-brand-dark">Sign in</h1>
         <div className="space-y-1">
-          <label className="text-sm font-medium text-brand-forest" htmlFor="email">
+          <Label htmlFor="email" className="text-sm font-medium text-brand-forest">
             Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            className="w-full rounded-lg border border-brand-mist bg-brand-paper px-3 py-2 text-brand-dark outline-none focus:border-brand-green"
-          />
+          </Label>
+          <Input id="email" type="email" autoComplete="email" {...register("email")} />
+          {errors.email && <p className="text-xs text-red-600">{errors.email.message}</p>}
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium text-brand-forest" htmlFor="password">
+          <Label htmlFor="password" className="text-sm font-medium text-brand-forest">
             Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            className="w-full rounded-lg border border-brand-mist bg-brand-paper px-3 py-2 text-brand-dark outline-none focus:border-brand-green"
-          />
+          </Label>
+          <Input id="password" type="password" autoComplete="current-password" {...register("password")} />
+          {errors.password && <p className="text-xs text-red-600">{errors.password.message}</p>}
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
+        {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+        <Button
           type="submit"
-          disabled={loading}
-          className="w-full rounded-lg bg-brand-green py-2.5 font-semibold text-brand-dark transition hover:brightness-95 disabled:opacity-60"
+          disabled={isSubmitting}
+          className="w-full bg-brand-green py-2.5 font-semibold text-brand-dark hover:bg-brand-green/90"
         >
-          {loading ? "Signing in…" : "Sign in"}
-        </button>
+          {isSubmitting ? "Signing in…" : "Sign in"}
+        </Button>
         <p className="text-center text-sm text-brand-forest">
           No account yet?{" "}
           <Link href="/sign-up" className="font-semibold text-brand-dark underline">

@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { CategoryPicker, type CategoryNode } from "@/components/category-picker";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export type MerchantRuleData = {
   id: string;
@@ -74,24 +76,30 @@ export function MerchantRuleList({
           </h2>
           <ul className="space-y-2">
             {group.rules.map((rule) => (
-              <li key={rule.id} className="flex items-center gap-2 rounded-2xl bg-surface p-3 shadow-sm">
-                <span className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold capitalize">{rule.merchant}</p>
-                  <p className="text-xs text-secondary/50">{rule.direction === "in" ? "Money in" : "Money out"}</p>
-                </span>
-                <CategoryPicker
-                  categories={categories}
-                  value={rule.categoryId}
-                  onChange={(categoryId) => updateCategory(rule.id, categoryId)}
-                />
-                <button
-                  type="button"
-                  onClick={() => remove(rule.id)}
-                  aria-label="Delete rule"
-                  className="shrink-0 rounded-full p-1.5 text-secondary/50 hover:bg-muted hover:text-secondary"
-                >
-                  <X size={14} />
-                </button>
+              <li key={rule.id}>
+                <Card>
+                  <CardContent className="flex items-center gap-2">
+                    <span className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold capitalize">{rule.merchant}</p>
+                      <p className="text-xs text-secondary/50">{rule.direction === "in" ? "Money in" : "Money out"}</p>
+                    </span>
+                    <CategoryPicker
+                      categories={categories}
+                      value={rule.categoryId}
+                      onChange={(categoryId) => updateCategory(rule.id, categoryId)}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => remove(rule.id)}
+                      aria-label="Delete rule"
+                      className="shrink-0 text-secondary/50"
+                    >
+                      <X size={14} />
+                    </Button>
+                  </CardContent>
+                </Card>
               </li>
             ))}
           </ul>
