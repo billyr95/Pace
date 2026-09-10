@@ -180,6 +180,18 @@ html {
   animation: pace-loading 1.2s ease-in-out infinite;
 }
 
+/* Browsers render autofilled inputs with their own background/text color, ignoring plain
+   background-color/color CSS — used on the sign-in/sign-up inputs (always a white card,
+   regardless of theme) so a filled-in email/password field doesn't go gray-on-white. */
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000;
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  box-shadow: 0 0 0 1000px #fff inset;
+  caret-color: #000;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

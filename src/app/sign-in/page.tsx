@@ -18,11 +18,13 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-// This form is intentionally theme-independent (always the white brand-paper card, never
-// dark mode) — shadcn Input's default border/text colors are theme tokens, so they need an
-// explicit override here rather than inheriting whatever the ambient page theme resolves to.
+// This form is intentionally theme-independent (always the white card, never dark mode) —
+// shadcn Input's default border/text colors are theme tokens, so they need an explicit
+// override here rather than inheriting whatever the ambient page theme resolves to. The
+// auth-input class (globals.css) additionally overrides browser autofill styling, which
+// ignores plain background/text-color CSS on its own.
 const authInputClassName =
-  "border-brand-mist bg-brand-paper text-brand-dark placeholder:text-brand-forest/80 focus-visible:border-brand-green focus-visible:ring-brand-green/20";
+  "auth-input border-brand-mist bg-white text-black placeholder:text-brand-forest/80 focus-visible:border-brand-green focus-visible:ring-brand-green/20";
 
 export default function SignInPage() {
   const router = useRouter();
